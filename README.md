@@ -14,3 +14,6 @@ Reads a line of text. A line is considered to be terminated by any one of a line
 
 **Throws:**
     IOException - If an I/O error occurs
+
+
+Эта строка для эксперимента с привязкой коммита к issue.
