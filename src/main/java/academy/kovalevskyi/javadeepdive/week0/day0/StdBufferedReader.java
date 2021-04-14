@@ -22,9 +22,11 @@ public class StdBufferedReader implements Closeable {
     if (reader == null) {
       throw new NullPointerException();
     }
+    
     this.buffer = new char[bufferSize + 2];
     this.reader = reader;
     this.bufferSize = bufferSize;
+    // первое чтение
     this.readerReadResult = reader.read(buffer, 0, bufferSize);
     if (readerReadResult > 0) {
       takeFullLine();
@@ -43,7 +45,7 @@ public class StdBufferedReader implements Closeable {
    * @return true if can & false is can't.
    */
   public boolean hasNext() {
-    return startIndex < buffer.length && startIndex < readerReadResult;
+    return startIndex < buffer.length && startIndex < readerReadResult + 1;
   }
 
   /**

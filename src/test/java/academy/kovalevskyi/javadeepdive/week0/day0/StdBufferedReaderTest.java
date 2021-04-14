@@ -2,7 +2,8 @@ package academy.kovalevskyi.javadeepdive.week0.day0;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -192,7 +193,7 @@ class StdBufferedReaderTest {
   @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
   public void hasNextWithFourLinesAndSmallBuffer(int bufSize) throws IOException {
     var stdBufR = new StdBufferedReader(new StringReader(fourLines), bufSize);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 1; i < 6; i++) {
       assertWithMessage("Has next, when file contains four lines and small buffer?")
           .that(stdBufR.hasNext())
           .isTrue();
@@ -209,7 +210,7 @@ class StdBufferedReaderTest {
     assertWithMessage("Hase next, when file contains four line?")
         .that(stdBufR.hasNext())
         .isTrue();
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       stdBufR.readLine();
       assertWithMessage("Hase next after `readLine()`, when file contains four line?")
           .that(stdBufR.hasNext())
@@ -219,6 +220,42 @@ class StdBufferedReaderTest {
     assertWithMessage("It is really has next after N iteration of `readLine()`, "
             + "when file contains only four lines?!")
         .that(stdBufR.hasNext())
+        .isFalse();
+  }
+
+  @Test // баганутый тест
+  public void readLineWith5EmptyLiner() throws Exception {
+    var bufferedReader = new StdBufferedReader(new StringReader("\n\n\n\n"), 256);
+    var text = "Text in file: \\n\\n\\n\\n";
+    assertWithMessage(String.format("%s%nReading one line", text))
+        .that(bufferedReader.readLine())
+        .hasLength(0);
+    assertWithMessage(String.format("%s%nChecking if second line is available", text))
+        .that(bufferedReader.hasNext())
+        .isTrue();
+    assertWithMessage(String.format("%s%nReading second line", text))
+        .that(bufferedReader.readLine())
+        .hasLength(0);
+    assertWithMessage(String.format("%s%nChecking if third line is available", text))
+        .that(bufferedReader.hasNext())
+        .isTrue();
+    assertWithMessage(String.format("%s%nReading third line", text))
+        .that(bufferedReader.readLine())
+        .hasLength(0);
+    assertWithMessage(String.format("%s%nChecking if fourth line is available", text))
+        .that(bufferedReader.hasNext())
+        .isTrue();
+    assertWithMessage(String.format("%s%nReading fourth line", text))
+        .that(bufferedReader.readLine())
+        .hasLength(0);
+    assertWithMessage(String.format("%s%nChecking if fifth line is available", text))
+        .that(bufferedReader.hasNext())
+        .isTrue();
+    assertWithMessage(String.format("%s%nReading fifth line", text))
+        .that(bufferedReader.readLine())
+        .hasLength(0);
+    assertWithMessage(String.format("%s%nChecking if six line is available", text))
+        .that(bufferedReader.hasNext())
         .isFalse();
   }
 }
