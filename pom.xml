@@ -13,6 +13,8 @@
         <javaVersion>15</javaVersion>
         <maven.compiler.target>${javaVersion}</maven.compiler.target>
         <maven.compiler.source>${javaVersion}</maven.compiler.source>
+        <jupiterVersion>5.8.0-M1</jupiterVersion>
+        <surefire-pluginVersion>3.0.0-M5</surefire-pluginVersion>
     </properties>
 
     <build>
@@ -30,8 +32,31 @@
                         </archive>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${surefire-pluginVersion}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${jupiterVersion}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.truth/truth -->
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <version>1.1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 
 </project>
