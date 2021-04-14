@@ -3,7 +3,6 @@ package academy.kovalevskyi.javadeepdive.week0.day0;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Objects;
 
 /**
  * This is a tutorial class that lets you read lines from an incoming reader.
@@ -20,6 +19,8 @@ public class StdBufferedReader implements Closeable {
     if (bufferSize <= 0) {
       throw new IllegalArgumentException();
     }
+
+    // TODO something with small buffer and huge strings.
     this.reader = reader;
     buffer = new char[bufferSize];
     readerReadResult = reader.read(buffer, 0, buffer.length);
@@ -46,17 +47,15 @@ public class StdBufferedReader implements Closeable {
    * @return a one String line in char array presentation.
    * @throws IOException  - If an I/O error occurs.
    */
-  public char[] readLine() throws IOException {
+  public char[] readLine() {
+    if (isEndOfLine(startIndex)) {
+      startIndex += 1;
+      return new char[0];
+    }
     int endIndex = findEndOfLine(startIndex);
     oneLine = new char[endIndex - startIndex];
     System.arraycopy(buffer, startIndex, oneLine, 0, endIndex - startIndex);
-    shiftStartIndex(endIndex);
-
-//    System.out.println("ready: " + reader.ready());
-//    System.out.println("readerReadResult: " + readerReadResult);
-//    System.out.println(String.copyValueOf(buffer));
-//    System.out.println(buffer[readerReadResult]);
-
+    startIndex = endIndex + 1;
     return oneLine;
   }
 
@@ -66,13 +65,6 @@ public class StdBufferedReader implements Closeable {
       return;
     }
     reader.close();
-  }
-
-  private void shiftStartIndex(int lengthOfCurrentLine) {
-    startIndex = lengthOfCurrentLine;
-    while (startIndex < buffer.length && startIndex < readerReadResult && isEndOfLine(startIndex)) {
-      startIndex += 1;
-    }
   }
 
   /**
