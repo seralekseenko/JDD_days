@@ -9,9 +9,9 @@ import java.io.Reader;
  */
 public class StdBufferedReader implements Closeable {
 
-  private final char[] buffer;
-  private char[] oneLine;
+  private  char[] buffer;
   private final Reader reader;
+  private int bufferSize;
   private int readerReadResult;
   private int startIndex;
 
@@ -19,24 +19,31 @@ public class StdBufferedReader implements Closeable {
     if (bufferSize <= 0) {
       throw new IllegalArgumentException();
     }
-
-    // TODO something with small buffer and huge strings.
+    if (reader == null) {
+      throw new NullPointerException();
+    }
+    this.buffer = new char[bufferSize + 2];
     this.reader = reader;
-    buffer = new char[bufferSize];
-    readerReadResult = reader.read(buffer, 0, buffer.length);
+    this.bufferSize = bufferSize;
+    this.readerReadResult = reader.read(buffer, 0, bufferSize);
+    if (readerReadResult > 0) {
+      takeFullLine();
+    }
+
+
   }
 
   public StdBufferedReader(Reader reader) throws IOException {
     this(reader, 8192);
   }
 
-  // Returns true if there is something to read from the reader.
-  // False if nothing is there 😀
-  public boolean hasNext() throws IOException {
-    if (startIndex < buffer.length && startIndex < readerReadResult) {
-      return true;
-    }
-    return false;
+  /**
+   * Giv an answer: "can reading one more line?".
+   *
+   * @return true if can & false is can't.
+   */
+  public boolean hasNext() {
+    return startIndex < buffer.length && startIndex < readerReadResult;
   }
 
   /**
@@ -45,15 +52,15 @@ public class StdBufferedReader implements Closeable {
    * or by reaching the end-of-file (EOF).
    *
    * @return a one String line in char array presentation.
-   * @throws IOException  - If an I/O error occurs.
    */
   public char[] readLine() {
     if (isEndOfLine(startIndex)) {
       startIndex += 1;
       return new char[0];
     }
+
     int endIndex = findEndOfLine(startIndex);
-    oneLine = new char[endIndex - startIndex];
+    char[] oneLine = new char[endIndex - startIndex];
     System.arraycopy(buffer, startIndex, oneLine, 0, endIndex - startIndex);
     startIndex = endIndex + 1;
     return oneLine;
@@ -65,6 +72,19 @@ public class StdBufferedReader implements Closeable {
       return;
     }
     reader.close();
+    buffer = null;
+  }
+
+  private void takeFullLine() throws IOException {
+    while (buffer[bufferSize - 1] != (char) 0) {
+      var oldBufferSize = bufferSize;
+      this.bufferSize = bufferSize * 2;
+      var tempArray = new char[bufferSize + 1];
+      System.arraycopy(buffer, 0, tempArray, 0, oldBufferSize + 1);
+      this.buffer = tempArray;
+      var tempReaderReadResult = reader.read(buffer, oldBufferSize, oldBufferSize);
+      this.readerReadResult += Math.max(tempReaderReadResult, 0);
+    }
   }
 
   /**
@@ -87,6 +107,9 @@ public class StdBufferedReader implements Closeable {
   }
 
   private boolean isEndOfLine(int index) {
+    if (index >= buffer.length) {
+      return true;
+    }
     char actual = buffer[index];
     return actual == '\n' || actual == '\r';
   }

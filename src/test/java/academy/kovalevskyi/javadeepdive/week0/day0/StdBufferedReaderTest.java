@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class StdBufferedReaderTest {
   String oneInputString = "Очень простая строка.";
@@ -53,15 +55,43 @@ class StdBufferedReaderTest {
   @Test
   public void testReadLineWithOneSimpleLine() throws IOException {
     char[] expectedResult =
-        new BufferedReader(new StringReader(oneInputString), 50).readLine().toCharArray();
+        new BufferedReader(new StringReader(oneInputString), 21).readLine().toCharArray();
     char[] actualResult =
         assertDoesNotThrow(
-            () -> new StdBufferedReader(new StringReader(oneInputString), 50).readLine());
+            () -> new StdBufferedReader(new StringReader(oneInputString), 21).readLine());
     assertThat(actualResult).isEqualTo(expectedResult);
   }
 
-  // TODO make a test with simple line and very big buffer
-  // TODO make a test with four lines and very smallest buffer
+  @ParameterizedTest
+  @ValueSource(ints = {99999, 100000000, 5555555, 6666666, 8974525})
+  public void testReadLineWithSimpleLineAndHugeBuffer(int bufSize) throws IOException {
+    char[] expectedResult =
+        new BufferedReader(new StringReader(oneInputString), bufSize).readLine().toCharArray();
+    char[] actualResult =
+        assertDoesNotThrow(
+            () -> new StdBufferedReader(new StringReader(oneInputString), bufSize).readLine());
+    assertThat(actualResult).isEqualTo(expectedResult);
+  }
+  
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+  public void testReadLineWithSmallBufferAndFourLines(int bufSize) throws IOException {
+    char[] expectedResult =
+        new BufferedReader(new StringReader(fourLines), bufSize).readLine().toCharArray();
+    char[] actualResult = assertDoesNotThrow(
+            () -> new StdBufferedReader(new StringReader(fourLines), bufSize).readLine());
+    assertThat(actualResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void readLineWithLongLineAndSmallBuffer() throws Exception {
+    var bufferedReader = new StdBufferedReader(new StringReader(fourLines), 2);
+    var javaBufferedReader = new BufferedReader(new StringReader(fourLines));
+    var expectedResult = javaBufferedReader.readLine().toCharArray();
+    assertThat(bufferedReader.readLine())
+        .isEqualTo(expectedResult);
+  }
+
 
   @Test
   public void testReadLineWithFourLines() throws IOException {
@@ -72,7 +102,7 @@ class StdBufferedReaderTest {
 
     for (int i = 0; i < 4; i++) {
       expectedResult = bufR.readLine().toCharArray();
-      actualResult = assertDoesNotThrow(() -> stdBufR.readLine());
+      actualResult = assertDoesNotThrow(stdBufR::readLine);
       assertThat(actualResult).isEqualTo(expectedResult);
     }
   }
@@ -99,7 +129,7 @@ class StdBufferedReaderTest {
     char[] actualResult;
     for (int i = 0; i < numberOfLines; i++) {
       expectedResult = bufR.readLine().toCharArray();
-      actualResult = assertDoesNotThrow(() -> stdBufR.readLine());
+      actualResult = assertDoesNotThrow(stdBufR::readLine);
       assertWithMessage("Number of the reading string: " + (i + 1))
           .that(actualResult)
           .isEqualTo(expectedResult);
@@ -124,9 +154,9 @@ class StdBufferedReaderTest {
   }
 
   @Test
-  public void hasNextWhenEmpty() throws Exception {
+  public void hasNextWhenEmpty() throws IOException {
     var bufferedReader = new StdBufferedReader(new StringReader(""), 10);
-    assertWithMessage("Howe many lines in empty file?")
+    assertWithMessage("How many lines in empty file?")
         .that(bufferedReader.hasNext())
         .isFalse();
   }
@@ -134,18 +164,44 @@ class StdBufferedReaderTest {
   @Test
   public void hasNextWithSimpleLine() throws Exception {
     var stdBufR = new StdBufferedReader(new StringReader(oneInputString), 50);
-    assertWithMessage("Hase next, when file contains one line?")
+    assertWithMessage("Has next, when file contains one line?")
         .that(stdBufR.hasNext())
         .isTrue();
-    var line = stdBufR.readLine();
-    assertWithMessage("Hase next after `readLine()`, when file contains one line?")
+    stdBufR.readLine();
+    assertWithMessage("Has next after `readLine()`, when file contains one line?")
         .that(stdBufR.hasNext())
         .isFalse();
   }
 
-  // TODO make a test with simple line and very big buffer
-  // TODO make a test with four lines and very smallest buffer
+  @ParameterizedTest
+  @ValueSource(ints = {99999, 100000000, 5555555, 6666666, 8974525})
+  public void hasNextWithSmallLineAndHugeBuffer(int bufSize) throws IOException {
+    var stdBufR = new StdBufferedReader(new StringReader(oneInputString), bufSize);
+    assertWithMessage("Has next, when file contains one line and huge buffer?")
+        .that(stdBufR.hasNext())
+        .isTrue();
+    stdBufR.readLine();
+    assertWithMessage("Has next after `readLine()`, "
+        + "when file contains one line and huge buffer?")
+        .that(stdBufR.hasNext())
+        .isFalse();
+  }
 
+  // TODO make a test with four lines and very smallest buffer
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+  public void hasNextWithFourLinesAndSmallBuffer(int bufSize) throws IOException {
+    var stdBufR = new StdBufferedReader(new StringReader(fourLines), bufSize);
+    for (int i = 0; i < 4; i++) {
+      assertWithMessage("Has next, when file contains four lines and small buffer?")
+          .that(stdBufR.hasNext())
+          .isTrue();
+      stdBufR.readLine();
+    }
+    assertWithMessage("Has next after four `hasNext()`?")
+        .that(stdBufR.hasNext())
+        .isFalse();
+  }
 
   @Test
   public void hasNextWithFourLines() throws Exception {
