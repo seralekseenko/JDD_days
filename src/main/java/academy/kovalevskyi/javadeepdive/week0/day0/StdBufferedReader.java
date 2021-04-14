@@ -3,6 +3,7 @@ package academy.kovalevskyi.javadeepdive.week0.day0;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Objects;
 
 /**
  * This is a tutorial class that lets you read lines from an incoming reader.
@@ -15,20 +16,16 @@ public class StdBufferedReader implements Closeable {
   private int readerReadResult;
   private int startIndex;
 
-  public StdBufferedReader(Reader reader, int bufferSize) {
-    if (bufferSize < 3) {
+  public StdBufferedReader(Reader reader, int bufferSize) throws IOException {
+    if (bufferSize <= 0) {
       throw new IllegalArgumentException();
     }
     this.reader = reader;
     buffer = new char[bufferSize];
-    try {
-      readerReadResult = reader.read(buffer, 0, buffer.length);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    readerReadResult = reader.read(buffer, 0, buffer.length);
   }
 
-  public StdBufferedReader(Reader reader) {
+  public StdBufferedReader(Reader reader) throws IOException {
     this(reader, 8192);
   }
 
@@ -50,19 +47,16 @@ public class StdBufferedReader implements Closeable {
    * @throws IOException  - If an I/O error occurs.
    */
   public char[] readLine() throws IOException {
-    int endIndex = findEndOfLine(startIndex) + 1;
-    oneLine = new char[endIndex];
-    System.arraycopy(buffer, startIndex, oneLine, 0, endIndex);
+    int endIndex = findEndOfLine(startIndex);
+    oneLine = new char[endIndex - startIndex];
+    System.arraycopy(buffer, startIndex, oneLine, 0, endIndex - startIndex);
     shiftStartIndex(endIndex);
-    
-
 
 //    System.out.println("ready: " + reader.ready());
 //    System.out.println("readerReadResult: " + readerReadResult);
 //    System.out.println(String.copyValueOf(buffer));
 //    System.out.println(buffer[readerReadResult]);
 
-    
     return oneLine;
   }
 
@@ -71,11 +65,7 @@ public class StdBufferedReader implements Closeable {
     if (reader == null) {
       return;
     }
-    try {
-      reader.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    reader.close();
   }
 
   private void shiftStartIndex(int lengthOfCurrentLine) {
@@ -84,6 +74,7 @@ public class StdBufferedReader implements Closeable {
       startIndex += 1;
     }
   }
+
   /**
    * Searching end of String line in buffer.
    * If the method finds any of the special characters: '\n' and '\n', it means that the
@@ -94,7 +85,7 @@ public class StdBufferedReader implements Closeable {
    */
   private int findEndOfLine(int startIndex) {
     int endIndex = startIndex;
-    for (int i = startIndex; i < buffer.length && i < readerReadResult; i++) {
+    for (int i = startIndex; i <= buffer.length && i <= readerReadResult; i++) {
       endIndex = i;
       if (isEndOfLine(i)) {
         break;
