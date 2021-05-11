@@ -26,13 +26,12 @@ public class StdBufferedReader implements Closeable {
     this.buffer = new char[bufferSize + 2];
     this.reader = reader;
     this.bufferSize = bufferSize;
+
     // первое чтение
     this.readerReadResult = reader.read(buffer, 0, bufferSize);
     if (readerReadResult > 0) {
       takeFullLine();
     }
-
-
   }
 
   public StdBufferedReader(Reader reader) throws IOException {
