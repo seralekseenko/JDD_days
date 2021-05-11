@@ -45,12 +45,12 @@ class StdBufferedReaderTest {
 
   @Test
   public void testReadLineWithEmptyLine() {
-    char[] actualResult =
-        assertDoesNotThrow(
-            () -> new StdBufferedReader(new StringReader(""), 10).readLine());
-    assertWithMessage("It was one empty line.")
+    String message = "Input file contains: \n\"\", Input buffer size is: 10";
+    char[] actualResult = assertDoesNotThrow(
+            () -> new StdBufferedReader(new StringReader(""), 10).readLine(), message);
+    assertWithMessage(message)
         .that(actualResult)
-        .isEmpty(); // тут поведение не совпадает с BufferedReader — тот возвращает null!
+        .isNull();
   }
 
   @Test

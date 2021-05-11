@@ -9,11 +9,15 @@ import java.io.Reader;
  */
 public class StdBufferedReader implements Closeable {
 
+
+  private static int defaultCharBufferSize = 8192;
+
+
   private  char[] buffer;
   private final Reader reader;
   private int bufferSize;
   private int readerReadResult;
-  private int startIndex;
+  private int startIndex = 0;
 
   public StdBufferedReader(Reader reader, int bufferSize) throws IOException {
     if (bufferSize <= 0) {
@@ -23,16 +27,11 @@ public class StdBufferedReader implements Closeable {
       throw new NullPointerException();
     }
     
-    this.buffer = new char[bufferSize + 2];
+    this.buffer = new char[bufferSize];
     this.reader = reader;
     this.bufferSize = bufferSize;
-    // первое чтение
-    this.readerReadResult = reader.read(buffer, 0, bufferSize);
-    if (readerReadResult > 0) {
-      takeFullLine();
-    }
 
-
+    fillBuffer();
   }
 
   public StdBufferedReader(Reader reader) throws IOException {
@@ -61,8 +60,14 @@ public class StdBufferedReader implements Closeable {
       return new char[0];
     }
 
+    // Is end of file?
+    if (buffer[startIndex] == (char) 0) {
+      return null;
+    }
+    char[] oneLine;
     int endIndex = findEndOfLine(startIndex);
-    char[] oneLine = new char[endIndex - startIndex];
+
+    oneLine = new char[endIndex - startIndex];
     System.arraycopy(buffer, startIndex, oneLine, 0, endIndex - startIndex);
     startIndex = endIndex + 1;
     return oneLine;
@@ -75,6 +80,11 @@ public class StdBufferedReader implements Closeable {
     }
     reader.close();
     buffer = null;
+  }
+
+  private void fillBuffer() throws IOException {
+    // Первое чтение.
+    this.readerReadResult = reader.read(buffer, 0, bufferSize);
   }
 
   private void takeFullLine() throws IOException {
@@ -109,9 +119,6 @@ public class StdBufferedReader implements Closeable {
   }
 
   private boolean isEndOfLine(int index) {
-    if (index >= buffer.length) {
-      return true;
-    }
     char actual = buffer[index];
     return actual == '\n' || actual == '\r';
   }
