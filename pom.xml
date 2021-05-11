@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>seralekseenko.javadeepdive</groupId>
-    <artifactId>MyBufferedReader</artifactId>
+    <artifactId>JDD-days_0_1</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javaVersion>15</javaVersion>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <javaVersion>16</javaVersion>
         <maven.compiler.target>${javaVersion}</maven.compiler.target>
         <maven.compiler.source>${javaVersion}</maven.compiler.source>
         <jupiterVersion>5.8.0-M1</jupiterVersion>
@@ -20,6 +21,15 @@
     <build>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>${javaVersion}</source>
+                        <target>${javaVersion}</target>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -33,11 +43,13 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${surefire-pluginVersion}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
+
     </build>
 
     <dependencies>
