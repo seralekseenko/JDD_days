@@ -7,10 +7,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -25,6 +30,19 @@ class StdBufferedReaderTest {
       """;
   String longLine = "Здесь я хочу написать очень длинную строку, но мне лень. Но я попробую. "
       + "Вдруг у меня получиться? А что такое длинная строка? Кто это решает? Ой все!";
+
+  private final String superLongLine;
+  {
+    var longString = new StringBuilder(300000);
+    IntStream.range(0, 300000).forEach(i -> {
+      if (new Random().nextInt() < 10) {
+        longString.append("\n");
+      } else {
+        longString.append(i);
+      }
+    });
+    superLongLine = longString.toString();
+  }
 
   @Test
   public void testWithNullReader() {
@@ -247,6 +265,21 @@ class StdBufferedReaderTest {
             + "when file contains only four lines?!")
         .that(stdBufR.hasNext())
         .isFalse();
+  }
+
+  @Test
+  public void readLineWithWarAndPeace() throws Exception {
+    //System.out.println(superLongLine);
+    var bufferedReader = new StdBufferedReader(new InputStreamReader(new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
+    var javaBufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
+    var line = 0;
+    while (javaBufferedReader.ready()) {
+      var expectedResult = javaBufferedReader.readLine().toCharArray();
+      var actualResult = bufferedReader.readLine();
+      assertWithMessage(String.format("Reading war and peace, line number: %d", line++))
+              .that(actualResult)
+              .isEqualTo(expectedResult);
+    }
   }
 
   @Test
