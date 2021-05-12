@@ -1,13 +1,12 @@
 package academy.kovalevskyi.javadeepdive.week0.day2;
-import academy.kovalevskyi.javadeepdive.week0.day0.StdBufferedReader;
 
+import academy.kovalevskyi.javadeepdive.week0.day0.StdBufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 
-/**
- * Serialize & deserialize Csv.java.
+/** Serialize & deserialize Csv.java.
  */
 public class CsvHelper {
 
@@ -23,34 +22,45 @@ public class CsvHelper {
    * @return an CSV-object.
    * @throws IOException if something wrong with process of reading from file.
    */
-  public static Csv parseFile(Reader reader, boolean withHeader, char delimiter) throws IOException {
+  public static Csv parseFile(Reader reader, boolean withHeader, char delimiter)throws IOException {
     StdBufferedReader bufRead = new StdBufferedReader(reader);
     String[] header = withHeader ? parseOneLine(bufRead, delimiter) : null;
 
     ArrayList<String[]> values = new ArrayList<>();
 
     while (bufRead.hasNext()) {
-      values.add(parseOneLine(bufRead, delimiter));
+      var temp = parseOneLine(bufRead, delimiter);
+      if (!temp[0].isEmpty()) {
+        values.add(temp);
+      }
     }
-    return new Csv(header, values.toArray(new String[][]{}));
+    reader.close();
+    return new Csv.Builder().header(header).values(values.toArray(new String[][]{})).build();
   }
 
   public static void writeCsv(Writer writer, Csv csv, char delimiter) throws IOException {
     if (csv.withHeader()) {
-      // переписать на стрим
-      for (String headValue : csv.header()) {
-        writer.write(headValue);
-        writer.write(delimiter);
-      }
+      String[] header = csv.header();
+      writeOneString(writer, header, delimiter);
     }
 
     // переписать на стрим
-    for (String[] mainArray : csv.values()) {
-      for (String str : mainArray) {
-        writer.write(str);
+    for (String[] innerArray : csv.values()) {
+      writeOneString(writer, innerArray, delimiter);
+    }
+    writer.close();
+  }
+
+  private static void writeOneString(Writer writer, String[] strings, char delimiter)
+      throws IOException {
+    // TODO use stream API
+    for (int i = 0; i < strings.length; i++) {
+      writer.write(strings[i]);
+      if (i != strings.length - 1) {
+        writer.write(delimiter);
       }
     }
-
+    writer.write(System.lineSeparator());
   }
 
   private static String[] parseOneLine(StdBufferedReader bufRead, char delimiter) {

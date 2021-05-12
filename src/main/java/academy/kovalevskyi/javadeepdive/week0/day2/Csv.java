@@ -4,15 +4,23 @@ import java.util.Arrays;
 
 public record Csv(String[] header, String[][] values) {
 
-  /** Check only input values.
-   *
-   * @param header - ignore.
-   * @param values - should be != null.
-   */
-  // Очень упрощенный конструктор для record.
-  public Csv {
-    if (values == null) {
-      throw new NullPointerException();
+  public static class Builder {
+
+    private String[] inputHeader;
+    private String[][] inputValues;
+
+    public Builder header(String[] header) {
+      this.inputHeader = header;
+      return this;
+    }
+
+    public Builder values(String[][] values) {
+      inputValues = values;
+      return this;
+    }
+
+    public Csv build() {
+      return new Csv(inputHeader, inputValues);
     }
   }
 
@@ -37,5 +45,17 @@ public record Csv(String[] header, String[][] values) {
   @Override
   public int hashCode() {
     return 31 * Arrays.hashCode(header) + Arrays.deepHashCode(values);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("csv{header=");
+    sb.append(Arrays.toString(header));
+    sb.append(", ");
+    sb.append("values=");
+    sb.append(Arrays.deepToString(values));
+    sb.append('}');
+    return sb.toString();
   }
 }

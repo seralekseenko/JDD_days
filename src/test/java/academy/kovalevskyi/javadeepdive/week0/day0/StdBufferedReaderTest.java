@@ -15,7 +15,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -32,6 +31,7 @@ class StdBufferedReaderTest {
       + "Вдруг у меня получиться? А что такое длинная строка? Кто это решает? Ой все!";
 
   private final String superLongLine;
+
   {
     var longString = new StringBuilder(300000);
     IntStream.range(0, 300000).forEach(i -> {
@@ -256,7 +256,7 @@ class StdBufferedReaderTest {
         .isTrue();
     for (int i = 0; i < 4; i++) {
       stdBufR.readLine();
-      assertWithMessage("Hase next after `readLine()`, when file contains four line?")
+      assertWithMessage("Has next after `readLine()`, when file contains four line?")
           .that(stdBufR.hasNext())
           .isTrue();
     }
@@ -270,8 +270,14 @@ class StdBufferedReaderTest {
   @Test
   public void readLineWithWarAndPeace() throws Exception {
     //System.out.println(superLongLine);
-    var bufferedReader = new StdBufferedReader(new InputStreamReader(new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
-    var javaBufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
+    var bufferedReader =
+         new StdBufferedReader(
+             new InputStreamReader(
+                 new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
+    var javaBufferedReader =
+         new BufferedReader(
+             new InputStreamReader(
+                 new ByteArrayInputStream(superLongLine.getBytes(StandardCharsets.UTF_8))));
     var line = 0;
     while (javaBufferedReader.ready()) {
       var expectedResult = javaBufferedReader.readLine().toCharArray();
