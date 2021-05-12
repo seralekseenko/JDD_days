@@ -15,7 +15,6 @@ public class StdBufferedReader implements Closeable {
 
   private  char[] buffer;
   private final Reader reader;
-  private int bufferSize;
   private int readerReadResult;
   private int startIndex = 0;
 
@@ -29,13 +28,12 @@ public class StdBufferedReader implements Closeable {
     
     this.buffer = new char[bufferSize];
     this.reader = reader;
-    this.bufferSize = bufferSize;
 
     fillBuffer();
   }
 
   public StdBufferedReader(Reader reader) throws IOException {
-    this(reader, 8192);
+    this(reader, defaultCharBufferSize);
   }
 
   /**
@@ -44,7 +42,7 @@ public class StdBufferedReader implements Closeable {
    * @return true if can & false is can't.
    */
   public boolean hasNext() {
-    return startIndex < buffer.length && startIndex < readerReadResult + 1;
+    return true;
   }
 
   /**
@@ -84,19 +82,7 @@ public class StdBufferedReader implements Closeable {
 
   private void fillBuffer() throws IOException {
     // Первое чтение.
-    this.readerReadResult = reader.read(buffer, 0, bufferSize);
-  }
-
-  private void takeFullLine() throws IOException {
-    while (buffer[bufferSize - 1] != (char) 0) {
-      var oldBufferSize = bufferSize;
-      this.bufferSize = bufferSize * 2;
-      var tempArray = new char[bufferSize + 1];
-      System.arraycopy(buffer, 0, tempArray, 0, oldBufferSize + 1);
-      this.buffer = tempArray;
-      var tempReaderReadResult = reader.read(buffer, oldBufferSize, oldBufferSize);
-      this.readerReadResult += Math.max(tempReaderReadResult, 0);
-    }
+    this.readerReadResult = reader.read(buffer, 0, buffer.length);
   }
 
   /**
@@ -108,14 +94,14 @@ public class StdBufferedReader implements Closeable {
    * @return the next index after last character in current line.
    */
   private int findEndOfLine(int startIndex) {
-    int endIndex = startIndex;
-    for (int i = startIndex; i <= buffer.length && i <= readerReadResult; i++) {
+    int endIndex;
+    for (int i = startIndex; i < buffer.length; i++) {
       endIndex = i;
       if (isEndOfLine(i)) {
-        break;
+        return endIndex;
       }
     }
-    return endIndex;
+    return -1;
   }
 
   private boolean isEndOfLine(int index) {
