@@ -319,7 +319,7 @@ class StdBufferedReaderTest {
         .hasLength(0);
     assertWithMessage(String.format("%s%nChecking if fifth line is available", text))
         .that(bufferedReader.hasNext())
-        .isTrue();
+        .isTrue(); // TODO сравнить поведение с BufferedReader
     assertWithMessage(String.format("%s%nReading fifth line", text))
         .that(bufferedReader.readLine())
         .hasLength(0);

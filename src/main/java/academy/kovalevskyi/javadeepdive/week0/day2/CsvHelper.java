@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /** Serialize & deserialize Csv.java.
  */
@@ -35,7 +37,7 @@ public class CsvHelper {
       }
     }
     reader.close();
-    return new Csv.Builder().header(header).values(values.toArray(new String[][]{})).build();
+    return new Csv.Builder().header(header).values(values.toArray(String[][]::new)).build();
   }
 
   public static void writeCsv(Writer writer, Csv csv, char delimiter) throws IOException {
@@ -45,21 +47,21 @@ public class CsvHelper {
     }
 
     // переписать на стрим
-    for (String[] innerArray : csv.values()) {
-      writeOneString(writer, innerArray, delimiter);
-    }
+    Arrays.stream(csv.values()).forEach(e -> {
+      try {
+        writeOneString(writer, e, delimiter);
+      } catch (IOException ioException) {
+        ioException.printStackTrace();
+      }
+    });
     writer.close();
   }
 
   private static void writeOneString(Writer writer, String[] strings, char delimiter)
       throws IOException {
-    // TODO use stream API
-    for (int i = 0; i < strings.length; i++) {
-      writer.write(strings[i]);
-      if (i != strings.length - 1) {
-        writer.write(delimiter);
-      }
-    }
+
+    var result = String.join(String.valueOf(delimiter), List.of(strings));
+    writer.write(result);
     writer.write(System.lineSeparator());
   }
 
