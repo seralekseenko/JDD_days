@@ -2,14 +2,17 @@ package academy.kovalevskyi.javadeepdive.week0.day3;
 
 /** Задает значения по которым будут отбираться записи в Csv для запросов.
  */
-public record Selector(String fieldName, String value) {
+public record Selector(String columnName, String value) {
 
   public static class Builder {
-    private String fieldName;
+    private String columnName;
     private String value;
 
-    public Builder fieldName(String fieldName) {
-      this.fieldName = fieldName;
+    public Builder fieldName(String columnName) {
+      if (columnName == null) {
+        throw new NullPointerException("Column name cant be null!");
+      }
+      this.columnName = columnName;
       return this;
     }
 
@@ -19,7 +22,7 @@ public record Selector(String fieldName, String value) {
     }
 
     public Selector build() {
-      return new Selector(fieldName, value);
+      return new Selector(columnName, value);
     }
   }
 }

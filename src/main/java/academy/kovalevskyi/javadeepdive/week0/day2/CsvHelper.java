@@ -25,36 +25,33 @@ public class CsvHelper {
    * @throws IOException if something wrong with process of reading from file.
    */
   public static Csv parseFile(Reader reader, boolean withHeader, char delimiter)throws IOException {
-    StdBufferedReader bufRead = new StdBufferedReader(reader);
-    String[] header = withHeader ? parseOneLine(bufRead, delimiter) : null;
+    String[] header;
+    ArrayList<String[]> values;
+    try (StdBufferedReader bufRead = new StdBufferedReader(reader)) {
+      header = withHeader ? parseOneLine(bufRead, delimiter) : null;
 
-    ArrayList<String[]> values = new ArrayList<>();
+      values = new ArrayList<>();
 
-    while (bufRead.hasNext()) {
-      var temp = parseOneLine(bufRead, delimiter);
-      if (!temp[0].isEmpty()) {
-        values.add(temp);
+      while (bufRead.hasNext()) {
+        var temp = parseOneLine(bufRead, delimiter);
+        if (!temp[0].isEmpty()) {
+          values.add(temp);
+        }
       }
     }
-    reader.close();
     return new Csv.Builder().header(header).values(values.toArray(String[][]::new)).build();
   }
 
   public static void writeCsv(Writer writer, Csv csv, char delimiter) throws IOException {
-    if (csv.withHeader()) {
-      String[] header = csv.header();
-      writeOneString(writer, header, delimiter);
-    }
-
-    // переписать на стрим
-    Arrays.stream(csv.values()).forEach(e -> {
-      try {
-        writeOneString(writer, e, delimiter);
-      } catch (IOException ioException) {
-        ioException.printStackTrace();
+    try (writer) {
+      if (csv.withHeader()) {
+        String[] header = csv.header();
+        writeOneString(writer, header, delimiter);
       }
-    });
-    writer.close();
+      for (String[] innerArray : csv.values()) {
+        writeOneString(writer, innerArray, delimiter);
+      }
+    }
   }
 
   private static void writeOneString(Writer writer, String[] strings, char delimiter)

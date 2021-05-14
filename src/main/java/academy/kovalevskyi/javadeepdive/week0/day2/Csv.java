@@ -50,12 +50,16 @@ public record Csv(String[] header, String[][] values) {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("csv{header=");
+    sb.append(String.format("csv(columns: %d, lines: %d)\n", header.length, values.length));
+    sb.append("header=");
     sb.append(Arrays.toString(header));
-    sb.append(", ");
-    sb.append("values=");
-    sb.append(Arrays.deepToString(values));
-    sb.append('}');
+    sb.append("\n");
+    sb.append("values=").append(Arrays.toString(values[0]));
+    sb.append('\n');
+    for (var i = 1; i < values.length; i++) {
+      sb.append("values=").append(Arrays.toString(values[i]));
+      sb.append('\n');
+    }
     return sb.toString();
   }
 }
