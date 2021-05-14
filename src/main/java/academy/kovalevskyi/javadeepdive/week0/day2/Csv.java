@@ -1,7 +1,6 @@
 package academy.kovalevskyi.javadeepdive.week0.day2;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 public record Csv(String[] header, String[][] values) {
 
@@ -68,5 +67,9 @@ public record Csv(String[] header, String[][] values) {
       sb.append('\n');
     }
     return sb.toString();
+  }
+
+  public Csv clone() {
+    return new Csv(this.header.clone(), this.values.clone());
   }
 }

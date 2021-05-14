@@ -11,24 +11,22 @@ import java.util.Arrays;
  */
 public class SelectRequest extends AbstractRequest<String[][]> {
 
-  private final Selector selector;
   private final String[] specificColumns;
 
-  private SelectRequest(Csv target,
-      Selector selector,
-      String[] specificColumns) throws RequestException {
-    super(target);
-    this.selector = selector;
+  private SelectRequest(Csv target, Selector selector, String[] specificColumns)
+      throws RequestException {
+
+    super(target, selector);
     this.specificColumns = specificColumns;
   }
 
   @Override
   protected String[][] execute() {
-    if (selector == null && specificColumns == null) {
-      return target.values();
+    if (specificColumns == null) {
+      return selectLines();
     }
 
-    if (selector == null && specificColumns != null) {
+    if (filterSelector == null && specificColumns != null) {
       return selectColumns(target.values());
     }
     // selector != null!
@@ -52,14 +50,6 @@ public class SelectRequest extends AbstractRequest<String[][]> {
           return newLine;
         })
         .toArray(String[][]::new);
-  }
-
-  private String[][] selectLines() {
-    var columnIndex = findColumnIndex(target, selector.columnName());
-    var searchingValue = selector.value();
-    return Arrays.stream(target.values())
-    .filter(line -> selector.value().equals(line[columnIndex]))
-    .toArray(String[][]::new);
   }
 
   public static class Builder {

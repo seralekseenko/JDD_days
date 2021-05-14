@@ -1,6 +1,7 @@
 package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
+import java.util.Arrays;
 
 /** Base functionality for any request.
  *
@@ -11,6 +12,15 @@ public abstract class AbstractRequest<T> {
   /** The table on which the work will be done.
    */
   Csv target;
+  /** Указывает в каком столбце какое совпадение искать, что поможет отсортировать строки.
+   */
+  Selector filterSelector;
+
+  protected AbstractRequest(Csv target, Selector filterSelector) throws RequestException {
+    this.filterSelector = filterSelector;
+    checkHeader(target);
+    this.target = target;
+  }
 
   protected AbstractRequest(Csv target) throws RequestException {
     checkHeader(target);
@@ -43,5 +53,20 @@ public abstract class AbstractRequest<T> {
     }
     return columnIndex;
   }
-  // later you can put here any protected methods that required in multiple requests
+
+  /** Выбирает линии по параметрам селектора.
+   *
+   * @return values with selected lines.
+   */
+  protected String[][] selectLines() {
+    if (filterSelector == null) {
+      return target.values();
+    }
+    var columnIndex = findColumnIndex(target, filterSelector.columnName());
+    var searchingValue = filterSelector.value();
+    return Arrays.stream(target.values())
+        .filter(line -> searchingValue.equals(line[columnIndex]))
+        .toArray(String[][]::new);
+  }
+
 }
