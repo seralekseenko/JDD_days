@@ -1,6 +1,7 @@
 package academy.kovalevskyi.javadeepdive.week0.day2;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public record Csv(String[] header, String[][] values) {
 
@@ -20,6 +21,12 @@ public record Csv(String[] header, String[][] values) {
     }
 
     public Csv build() {
+      /*if (inputHeader == null) {
+        throw new NullPointerException("Where is your header?!");
+      }
+      if (inputValues == null) {
+        throw new NullPointerException("Where is your values?!");
+      }*/
       return new Csv(inputHeader, inputValues);
     }
   }

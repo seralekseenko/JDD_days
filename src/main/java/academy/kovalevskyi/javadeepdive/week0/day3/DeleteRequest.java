@@ -13,25 +13,16 @@ public class DeleteRequest extends AbstractRequest<Csv> {
 
   private final Selector whereSelector;
 
-  private DeleteRequest(Csv target, Selector whereSelector) {
+  private DeleteRequest(Csv target, Selector whereSelector) throws RequestException {
     super(target);
     this.whereSelector = whereSelector;
   }
 
   @Override
-  protected Csv execute() throws RequestException {
-    if (!target.withHeader()) {
-      throw new RequestException("The csv must have a header!");
-    }
+  protected Csv execute() {
     var resultBuilder = new Csv.Builder().header(target.header());
     // find a column index
-    var columnIndex = 0;
-    for (String currentColumnName : target.header()) {
-      if (whereSelector.columnName().equals(currentColumnName)) {
-        break;
-      }
-      columnIndex++;
-    }
+    var columnIndex = findColumnIndex(target, whereSelector.columnName());
 
     // find all matches
     ArrayList<String[]> newValues = new ArrayList<>();
@@ -42,7 +33,7 @@ public class DeleteRequest extends AbstractRequest<Csv> {
       }
       newValues.add(line);
     }
-    resultBuilder.values(newValues.toArray(new String[][]{}));
+    resultBuilder.values(newValues.toArray(String[][]::new));
 
     return resultBuilder.build();
   }
@@ -62,7 +53,7 @@ public class DeleteRequest extends AbstractRequest<Csv> {
       return this;
     }
 
-    public DeleteRequest build() {
+    public DeleteRequest build() throws RequestException {
       return new DeleteRequest(target, whereSelector);
     }
   }

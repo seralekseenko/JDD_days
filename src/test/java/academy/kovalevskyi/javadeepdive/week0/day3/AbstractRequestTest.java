@@ -1,11 +1,11 @@
 package academy.kovalevskyi.javadeepdive.week0.day3;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
+import org.junit.Test;
 
 class AbstractRequestTest {
-  static final String[] header   =  "id, name, surname, sex, age, iq, wight, have a pet?".split(", ");
+
+  static final String[] header = "id, name, surname, sex, age, iq, wight, have a pet?".split(", ");
   static final String[][] values = {
       "01, Vasyl, Smokey, male, 54, -5, 70, -".split(", "),
       "02, Peter, Smokey, male, 55, -1, 80, -".split(", "),
@@ -30,4 +30,5 @@ class AbstractRequestTest {
     }
     return result;
   }
+
 }

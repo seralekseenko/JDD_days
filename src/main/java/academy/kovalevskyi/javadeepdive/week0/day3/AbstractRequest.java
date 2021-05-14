@@ -12,7 +12,8 @@ public abstract class AbstractRequest<T> {
    */
   Csv target;
 
-  protected AbstractRequest(Csv target) {
+  protected AbstractRequest(Csv target) throws RequestException {
+    checkHeader(target);
     this.target = target;
   }
 
@@ -26,5 +27,21 @@ public abstract class AbstractRequest<T> {
    */
   protected abstract T execute() throws RequestException;
 
+  protected void checkHeader(Csv csv) throws RequestException {
+    if (!csv.withHeader()) {
+      throw new RequestException("The csv must have a header!");
+    }
+  }
+
+  protected int findColumnIndex(Csv csv, String columnName) {
+    var columnIndex = 0;
+    for (String currentColumnName : csv.header()) {
+      if (columnName.equals(currentColumnName)) {
+        break;
+      }
+      columnIndex++;
+    }
+    return columnIndex;
+  }
   // later you can put here any protected methods that required in multiple requests
 }

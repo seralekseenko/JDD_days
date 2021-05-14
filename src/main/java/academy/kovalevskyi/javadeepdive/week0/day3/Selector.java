@@ -17,6 +17,9 @@ public record Selector(String columnName, String value) {
     }
 
     public Builder value(String value) {
+      if (value == null) {
+        throw new NullPointerException("Value cant be null!");
+      }
       this.value = value;
       return this;
     }

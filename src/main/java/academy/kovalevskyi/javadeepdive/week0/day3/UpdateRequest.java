@@ -2,20 +2,23 @@ package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
 
-/** Update some values in table.
+/**
+ * Update some values in table.
  */
 public class UpdateRequest extends AbstractRequest<Csv> {
 
   private final Selector whereSelector;
   private final Selector updateSelector;
 
-  private UpdateRequest(Csv target, Selector whereSelector, Selector updateToSelector) {
+  private UpdateRequest(Csv target, Selector whereSelector, Selector updateToSelector)
+      throws RequestException {
     super(target);
     this.whereSelector = whereSelector;
     this.updateSelector = updateToSelector;
   }
 
-  /** Do update.
+  /**
+   * Do update.
    *
    * @return updated table.
    * @throws RequestException if request is broken.
@@ -27,6 +30,7 @@ public class UpdateRequest extends AbstractRequest<Csv> {
   }
 
   public static class Builder {
+
     private Selector whereSelector;
     private Selector updateSelector;
     private Csv target;
@@ -46,7 +50,7 @@ public class UpdateRequest extends AbstractRequest<Csv> {
       return this;
     }
 
-    public UpdateRequest build() {
+    public UpdateRequest build() throws RequestException {
       return new UpdateRequest(target, whereSelector, updateSelector);
     }
   }

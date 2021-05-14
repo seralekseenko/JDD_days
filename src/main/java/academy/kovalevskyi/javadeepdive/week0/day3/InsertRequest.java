@@ -17,9 +17,8 @@ public class InsertRequest extends AbstractRequest<Csv> {
   }
 
   @Override
-  protected Csv execute() throws RequestException {
+  protected Csv execute() {
     var resultBuilder = new Csv.Builder().header(target.header());
-
     ArrayList<String[]> values = new ArrayList<>(Arrays.asList(target.values()));
     values.add(line);
     resultBuilder.values(values.toArray(String[][]::new));
