@@ -20,15 +20,15 @@ class DeleteRequestTest extends AbstractRequestTest {
   @Test
   public void delete_first_existing_entry() {
     var selector = new Selector.Builder().fieldName("name").value("Vasyl").build();
-    String message = String.format("Incoming Csv:\n%s\nIncoming Selector: %s\n", csv, selector);
+    String message = String.format("Incoming Csv:\n%s\nIncoming Selector: %s\n", csv1, selector);
     var deleteRqst = assertDoesNotThrow(() -> new DeleteRequest.Builder()
-        .from(csv)
+        .from(csv1)
         .where(selector)
         .build(), "Unexpected exception! It was normal request's creation.");
 
     var actual = assertDoesNotThrow(deleteRqst::execute, message);
     var expected = new Csv.Builder()
-        .header(header)
+        .header(header1)
         .values(removeLineInValues(0))
         .build();
     assertWithMessage("Incoming Selector: " + selector)

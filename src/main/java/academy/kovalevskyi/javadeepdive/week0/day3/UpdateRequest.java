@@ -1,7 +1,6 @@
 package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
-import java.util.Arrays;
 
 /**
  * Update some values in table.
@@ -12,8 +11,7 @@ public class UpdateRequest extends AbstractRequest<Csv> {
    */
   private final Selector updateSelector;
 
-  private UpdateRequest(Csv target, Selector filterSelector, Selector updateToSelector)
-      throws RequestException {
+  private UpdateRequest(Csv target, Selector filterSelector, Selector updateToSelector) {
     super(target.clone(), filterSelector);
     this.updateSelector = updateToSelector;
   }
@@ -22,7 +20,6 @@ public class UpdateRequest extends AbstractRequest<Csv> {
    * Do update.
    *
    * @return updated table.
-   * @throws RequestException if request is broken.
    */
   @Override
   protected Csv execute() {

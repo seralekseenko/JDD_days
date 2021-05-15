@@ -3,7 +3,6 @@ package academy.kovalevskyi.javadeepdive.week0.day3;
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /** Вставляет данные в таблицу. Таблица может быть пустой или непустой.
  */
@@ -11,18 +10,31 @@ public class InsertRequest extends AbstractRequest<Csv> {
 
   private final String[] line;
 
-  private InsertRequest(Csv target, String[] line) throws RequestException {
+  private InsertRequest(Csv target, String[] line) {
     super(target);
     this.line = line;
   }
 
   @Override
-  protected Csv execute() {
-    var resultBuilder = new Csv.Builder().header(target.header());
+  protected Csv execute() throws RequestException {
+    checkRequest();
+
     ArrayList<String[]> values = new ArrayList<>(Arrays.asList(target.values()));
     values.add(line);
-    resultBuilder.values(values.toArray(String[][]::new));
-    return resultBuilder.build();
+
+    return new Csv.Builder()
+        .header(target.header())
+        .values(values.toArray(String[][]::new))
+        .build();
+  }
+
+  private void checkRequest() throws RequestException {
+    if (line.length != target.header().length) {
+      throw new RequestException(String.format("The new line is different in length from the "
+              + "header! Header length: %d, New line's length: %d",
+          target.header().length,
+          line.length));
+    }
   }
 
   public static class Builder {
@@ -31,28 +43,16 @@ public class InsertRequest extends AbstractRequest<Csv> {
     private String[] line;
 
     public Builder insert(String[] line) {
-      if (line == null) {
-        throw new NullPointerException("New line cant be empty!");
-      }
       this.line = line;
       return this;
     }
 
     public Builder to(Csv target) {
-      if (target == null) {
-        throw new NullPointerException("You cant insert anything in null!");
-      }
       this.target = target;
       return this;
     }
 
     public InsertRequest build() throws RequestException {
-      if (line.length != target.header().length) {
-        throw new RequestException(String.format("The new line is different in length from the "
-            + "header! Header length: %d, New line's length: %d",
-            target.header().length,
-            line.length));
-      }
       return new InsertRequest(target, line);
     }
   }

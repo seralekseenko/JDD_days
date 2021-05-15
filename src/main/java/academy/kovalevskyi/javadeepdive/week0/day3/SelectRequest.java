@@ -13,27 +13,24 @@ public class SelectRequest extends AbstractRequest<String[][]> {
 
   private final String[] specificColumns;
 
-  private SelectRequest(Csv target, Selector selector, String[] specificColumns)
-      throws RequestException {
+  private SelectRequest(Csv target, Selector selector, String[] specificColumns) {
 
     super(target, selector);
     this.specificColumns = specificColumns;
   }
 
   @Override
-  protected String[][] execute() {
+  protected String[][] execute() throws RequestException {
+    checkRequest();
     if (specificColumns == null) {
       return selectLines();
     }
 
-    if (filterSelector == null && specificColumns != null) {
-      return selectColumns(target.values());
+    if (filterSelector == null) {
+      return selectColumns(selectLines());
     }
     // selector != null!
     String[][] selectedLines = selectLines();
-    if (specificColumns == null) {
-      return selectedLines;
-    }
     return selectColumns(selectedLines);
   }
 
@@ -49,6 +46,27 @@ public class SelectRequest extends AbstractRequest<String[][]> {
           }
           return newLine;
         })
+        .toArray(String[][]::new);
+  }
+
+  private void checkRequest() throws RequestException {
+    if (!target.withHeader() && (specificColumns != null || filterSelector != null)) {
+      throw new RequestException("No header — no select!");
+    }
+  }
+
+  /** Выбирает линии по параметрам селектора.
+   *
+   * @return values with selected lines.
+   */
+  protected String[][] selectLines() {
+    if (filterSelector == null) {
+      return target.values();
+    }
+    var columnIndex = findColumnIndex(target, filterSelector.columnName());
+    var searchingValue = filterSelector.value();
+    return Arrays.stream(target.values())
+        .filter(line -> searchingValue.equals(line[columnIndex]))
         .toArray(String[][]::new);
   }
 
@@ -74,9 +92,6 @@ public class SelectRequest extends AbstractRequest<String[][]> {
     }
 
     public SelectRequest build() throws RequestException {
-      if (!target.withHeader() && (columns != null || selector != null)) {
-        throw new RequestException("No header — no select!");
-      }
       return new SelectRequest(target, selector, columns);
     }
   }

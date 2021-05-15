@@ -2,6 +2,7 @@ package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
 import java.util.Arrays;
+import java.util.Objects;
 
 /** Base functionality for any request.
  *
@@ -16,14 +17,12 @@ public abstract class AbstractRequest<T> {
    */
   Selector filterSelector;
 
-  protected AbstractRequest(Csv target, Selector filterSelector) throws RequestException {
+  protected AbstractRequest(Csv target, Selector filterSelector) {
     this.filterSelector = filterSelector;
-    checkHeader(target);
     this.target = target;
   }
 
-  protected AbstractRequest(Csv target) throws RequestException {
-    checkHeader(target);
+  protected AbstractRequest(Csv target) {
     this.target = target;
   }
 
@@ -37,36 +36,16 @@ public abstract class AbstractRequest<T> {
    */
   protected abstract T execute() throws RequestException;
 
-  protected void checkHeader(Csv csv) throws RequestException {
-    if (!csv.withHeader()) {
-      throw new RequestException("The csv must have a header!");
-    }
-  }
-
   protected int findColumnIndex(Csv csv, String columnName) {
-    var columnIndex = 0;
-    for (String currentColumnName : csv.header()) {
-      if (columnName.equals(currentColumnName)) {
+    var columnIndex = -1;
+    var columns = csv.header();
+
+    for (int i = 0; i < columns.length; i++) {
+      if (Objects.equals(columnName, columns[i])) {
+        columnIndex = i;
         break;
       }
-      columnIndex++;
     }
     return columnIndex;
   }
-
-  /** Выбирает линии по параметрам селектора.
-   *
-   * @return values with selected lines.
-   */
-  protected String[][] selectLines() {
-    if (filterSelector == null) {
-      return target.values();
-    }
-    var columnIndex = findColumnIndex(target, filterSelector.columnName());
-    var searchingValue = filterSelector.value();
-    return Arrays.stream(target.values())
-        .filter(line -> searchingValue.equals(line[columnIndex]))
-        .toArray(String[][]::new);
-  }
-
 }
