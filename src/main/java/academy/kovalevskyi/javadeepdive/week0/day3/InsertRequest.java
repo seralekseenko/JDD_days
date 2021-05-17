@@ -1,8 +1,8 @@
 package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /** Вставляет данные в таблицу. Таблица может быть пустой или непустой.
  */
@@ -19,20 +19,20 @@ public class InsertRequest extends AbstractRequest<Csv> {
   protected Csv execute() throws RequestException {
     checkRequest();
 
-    ArrayList<String[]> values = new ArrayList<>(Arrays.asList(target.values()));
+    List<String[]> values = Arrays.asList(csv.values());
     values.add(line);
 
     return new Csv.Builder()
-        .header(target.header())
+        .header(csv.header())
         .values(values.toArray(String[][]::new))
         .build();
   }
 
   private void checkRequest() throws RequestException {
-    if (line.length != target.header().length) {
+    if (line.length != csv.header().length) {
       throw new RequestException(String.format("The new line is different in length from the "
               + "header! Header length: %d, New line's length: %d",
-          target.header().length,
+          csv.header().length,
           line.length));
     }
   }

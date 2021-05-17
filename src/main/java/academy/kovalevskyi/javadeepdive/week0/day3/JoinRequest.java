@@ -36,15 +36,16 @@ public class JoinRequest extends AbstractRequest<Csv> {
     keyColumnIndexRight = findColumnIndex(rightTable, keyColumn);
     // дополнительные проверки
     checkRequest();
-    var resultHeader = mergeLine(leftTable.header(), rightTable.header());
+
+    var mergedHeader = mergeLine(leftTable.header(), rightTable.header());
     var tempLeftVal = leftTable.values();
     var tempRightVal = rightTable.values();
-    String[][] resultValues = new String[tempLeftVal.length][];
-    for (int i = 0; i < resultValues.length; i++) {
-      resultValues[i] = mergeLine(tempLeftVal[i], tempRightVal[i]);
+    String[][] mergedValues = new String[tempLeftVal.length][];
+    for (int i = 0; i < mergedValues.length; i++) {
+      mergedValues[i] = mergeLine(tempLeftVal[i], tempRightVal[i]);
     }
 
-    return new Csv.Builder().header(resultHeader).values(resultValues).build();
+    return new Csv.Builder().header(mergedHeader).values(mergedValues).build();
   }
 
   private String[] mergeLine(String[] left, String[] right) {

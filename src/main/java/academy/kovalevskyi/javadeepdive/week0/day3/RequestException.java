@@ -9,6 +9,5 @@ public class RequestException extends Exception {
   }
 
   public RequestException() {
-
   }
 }

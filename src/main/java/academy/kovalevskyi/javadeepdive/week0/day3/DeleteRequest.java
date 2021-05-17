@@ -20,12 +20,12 @@ public class DeleteRequest extends AbstractRequest<Csv> {
   @Override
   protected Csv execute() {
     // find a column index
-    var columnIndex = findColumnIndex(target, whereSelector.columnName());
+    var columnIndex = findColumnIndex(csv, whereSelector.columnName());
 
     // find all matches TODO maybe 'flatMap'??
     ArrayList<String[]> newValues = new ArrayList<>();
     var searchingValue = whereSelector.value();
-    for (String[] line : target.values()) {
+    for (String[] line : csv.values()) {
       if (searchingValue != null && searchingValue.equals(line[columnIndex])) {
         continue;
       }
@@ -33,7 +33,7 @@ public class DeleteRequest extends AbstractRequest<Csv> {
     }
 
     return new Csv.Builder()
-        .header(target.header())
+        .header(csv.header())
         .values(newValues.toArray(String[][]::new))
         .build();
   }

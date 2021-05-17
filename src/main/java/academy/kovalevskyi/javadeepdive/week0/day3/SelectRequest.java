@@ -13,44 +13,46 @@ public class SelectRequest extends AbstractRequest<String[][]> {
 
   private final String[] specificColumns;
 
-  private SelectRequest(Csv target, Selector selector, String[] specificColumns) {
-
-    super(target, selector);
+  private SelectRequest(Csv csv, Selector selector, String[] specificColumns) {
+    super(csv, selector);
     this.specificColumns = specificColumns;
   }
 
   @Override
   protected String[][] execute() throws RequestException {
     checkRequest();
-    if (specificColumns == null) {
-      return selectLines();
+    // Нет заданных колонок — просто возвращаем значения по селектору!
+    if (specificColumns == null || specificColumns.length == 0) {
+      return selectLinesWithSelector();
     }
 
     if (filterSelector == null) {
-      return selectColumns(selectLines());
+      return getValuesWithSpecifiedColumns(csv.values());
     }
-    // selector != null!
-    String[][] selectedLines = selectLines();
-    return selectColumns(selectedLines);
+    // selector != null && specificColumns != null
+    return getValuesWithSpecifiedColumns(selectLinesWithSelector());
   }
 
-  private String[][] selectColumns(String[][] selectedLines) {
+  private String[][] getValuesWithSpecifiedColumns(String[][] selectedLines) {
     int[] columnIds = Arrays.stream(specificColumns)
-        .mapToInt(column -> findColumnIndex(target, column))
+        .mapToInt(column -> findColumnIndex(csv, column))
         .toArray();
     return Arrays.stream(selectedLines)
-        .map(line -> {
-          var newLine = new String[columnIds.length];
-          for (int i = 0; i < newLine.length; i++) {
-            newLine[i] = line[columnIds[i]];
-          }
-          return newLine;
-        })
+        .map(line -> rebuildLine(line, columnIds))
         .toArray(String[][]::new);
   }
 
+  private String[] rebuildLine(String[] line, int[] columnIds) {
+    var newLine = new String[columnIds.length];
+    for (int i = 0; i < newLine.length; i++) {
+      newLine[i] = line[columnIds[i]];
+    }
+    return newLine;
+  }
+
+
   private void checkRequest() throws RequestException {
-    if (!target.withHeader() && (specificColumns != null || filterSelector != null)) {
+    if (!csv.withHeader() && (specificColumns != null || filterSelector != null)) {
       throw new RequestException("No header — no select!");
     }
   }
@@ -59,13 +61,13 @@ public class SelectRequest extends AbstractRequest<String[][]> {
    *
    * @return values with selected lines.
    */
-  protected String[][] selectLines() {
+  protected String[][] selectLinesWithSelector() {
     if (filterSelector == null) {
-      return target.values();
+      return csv.values();
     }
-    var columnIndex = findColumnIndex(target, filterSelector.columnName());
+    var columnIndex = findColumnIndex(csv, filterSelector.columnName());
     var searchingValue = filterSelector.value();
-    return Arrays.stream(target.values())
+    return Arrays.stream(csv.values())
         .filter(line -> searchingValue.equals(line[columnIndex]))
         .toArray(String[][]::new);
   }

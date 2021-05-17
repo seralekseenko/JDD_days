@@ -24,29 +24,29 @@ public class UpdateRequest extends AbstractRequest<Csv> {
   @Override
   protected Csv execute() {
     if (updateSelector == null) {
-      return target;
+      return csv;
     }
-    var updateColumnIndex = findColumnIndex(target, updateSelector.columnName());
+    var updateColumnIndex = findColumnIndex(csv, updateSelector.columnName());
     var newValue = updateSelector.value();
 
     // Меняем все значения в колонке без предварительной фильтрации строк.
     if (filterSelector == null) {
-      for (String[] line : target.values()) {
+      for (String[] line : csv.values()) {
         line[updateColumnIndex] = newValue;
       }
-      return target; //cloned
+      return csv; //cloned
     }
 
-    int filterColumnIndex = findColumnIndex(target, filterSelector.columnName());
+    int filterColumnIndex = findColumnIndex(csv, filterSelector.columnName());
     String filterValue = filterSelector.value();
 
-    for (String[] line : target.values()) {
+    for (String[] line : csv.values()) {
       // Меняем значения в колонке по предварительной фильтрации строк.
       if (filterValue.equals(line[filterColumnIndex])) {
         line[updateColumnIndex] = newValue;
       }
     }
-    return target; // cloned
+    return csv; // cloned
   }
 
   public static class Builder {
