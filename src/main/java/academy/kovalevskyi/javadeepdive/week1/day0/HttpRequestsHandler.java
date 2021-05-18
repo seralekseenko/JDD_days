@@ -20,8 +20,19 @@ public class HttpRequestsHandler {
         new StdBufferedReader(new InputStreamReader(socket.getInputStream()));
         OutputStream out = socket.getOutputStream()) {
 
+      var firstReading = true;
+      System.out.println("####ПЕЧАТАЕМ ЗАПРОС####");
       while (bufferedReader.hasNext()) {
-        System.out.println(bufferedReader.readLine());
+        var read = bufferedReader.readLine();
+
+        if (read.length != 0 && !firstReading) {
+          System.out.println(read);
+        }
+
+        if (firstReading) {
+          System.out.println(parseFirstLine(read));
+          firstReading = false;
+        }
       }
 
       String response = """
@@ -37,5 +48,13 @@ public class HttpRequestsHandler {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private String parseFirstLine(char[] read) {
+    var splitLine = new String(read).split(" ");
+    return String.format("Method: %s\nPath: %s\nProtocol version: %s",
+        splitLine[0],
+        splitLine[1],
+        splitLine[2]);
   }
 }

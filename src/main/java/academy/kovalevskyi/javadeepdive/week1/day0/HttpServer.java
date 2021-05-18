@@ -32,6 +32,7 @@ public class HttpServer implements Runnable {
       command = in.nextLine();
     }
     in.close();
+
     server.stop();
   }
 
