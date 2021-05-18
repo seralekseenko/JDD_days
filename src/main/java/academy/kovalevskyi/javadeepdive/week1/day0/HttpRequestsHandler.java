@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public record HttpRequestsHandler(Socket socket) {
 
@@ -17,16 +16,17 @@ public record HttpRequestsHandler(Socket socket) {
       while (bufferedReader.hasNext()) {
         System.out.println(bufferedReader.readLine());
       }
-      System.out.println("\r\n");
-      System.out.println("\r\n");
+//      System.out.println("\r\n");
+//      System.out.println("\r\n");
+
       var response = "HTTP/1.1 200 OK\r\n"
-          + "Content-Length: 16\r\n"
+          + "Content-Length: 50\r\n"
           + "Content-Type: text/html\r\n"
+          + "\r\n"
           + "<b>It works!</b>"
           + "\r\n"
           + "\r\n";
       out.write(response.getBytes());
-      out.flush();
     } catch (IOException e) {
       e.printStackTrace();
     }
