@@ -6,11 +6,13 @@ import java.util.Scanner;
 
 public class HttpServer implements Runnable {
 
+  static final int DEFAULT_PORT = 8080;
+
   private ServerSocket serverSocket;
 
   public HttpServer() {
     try {
-      serverSocket = new ServerSocket(8080);
+      serverSocket = new ServerSocket(DEFAULT_PORT);
     } catch (IOException e) {
       e.printStackTrace();
     }
