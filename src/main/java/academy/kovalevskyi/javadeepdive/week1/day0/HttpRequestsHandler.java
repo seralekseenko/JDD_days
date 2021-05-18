@@ -6,7 +6,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public record HttpRequestsHandler(Socket socket) {
+public class HttpRequestsHandler {
+
+  private final Socket socket;
+
+  public HttpRequestsHandler(Socket socket) {
+    this.socket = socket;
+  }
 
   public void executeRequest() {
 
@@ -27,6 +33,7 @@ public record HttpRequestsHandler(Socket socket) {
           \r
           """;
       out.write(response.getBytes());
+      socket.close();
     } catch (IOException e) {
       e.printStackTrace();
     }

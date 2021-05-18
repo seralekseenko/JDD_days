@@ -7,8 +7,9 @@ import java.util.Scanner;
 public class HttpServer implements Runnable {
 
   static final int DEFAULT_PORT = 8080;
+  static Scanner in = new Scanner(System.in);
 
-  private ServerSocket serverSocket;
+  private volatile ServerSocket serverSocket;
 
   public HttpServer() {
     try {
@@ -22,7 +23,6 @@ public class HttpServer implements Runnable {
     HttpServer server = new HttpServer();
     Thread thread = new Thread(server);
     thread.start();
-    Scanner in = new Scanner(System.in);
 
     System.out.println("Input 'stop' to stop the server: ");
 
@@ -40,11 +40,8 @@ public class HttpServer implements Runnable {
     while (isLive()) {
       HttpRequestsHandler handler;
       try {
-        // TODO в решении учителя вынести клиента в поля класса!
-        try (var client = serverSocket.accept()) {
-          handler = new HttpRequestsHandler(client);
-          handler.executeRequest();
-        }
+        handler = new HttpRequestsHandler(serverSocket.accept());
+        handler.executeRequest();
       } catch (IOException e) {
         // БРЕД
         if (isLive()) {
