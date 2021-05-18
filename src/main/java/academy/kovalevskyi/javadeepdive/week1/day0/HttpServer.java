@@ -7,8 +7,15 @@ import java.util.Scanner;
 
 public class HttpServer implements Runnable {
 
-  private boolean live;
   private ServerSocket serverSocket;
+
+  public HttpServer() {
+    try {
+      serverSocket = new ServerSocket(8080);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   public static void main(String[] args) {
     HttpServer server = new HttpServer();
@@ -28,24 +35,21 @@ public class HttpServer implements Runnable {
 
   @Override
   public void run() {
-    try (ServerSocket serverSocket = new ServerSocket(8080)) {
-      while (isLive()) {
-        this.serverSocket = serverSocket;
-        try (Socket socket = serverSocket.accept()) {
-          HttpRequestsHandler handler = new HttpRequestsHandler(socket);
-          handler.executeRequest();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+    while (isLive()) {
+      HttpRequestsHandler handler = null;
+      try {
+        handler = new HttpRequestsHandler(serverSocket.accept());
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
+      if (handler != null) {
+        handler.executeRequest();
+      }
     }
   }
 
   public void stop() {
     try {
-      live = false;
       this.serverSocket.close();
     } catch (IOException e) {
       e.printStackTrace();
@@ -53,6 +57,6 @@ public class HttpServer implements Runnable {
   }
 
   public boolean isLive() {
-    return live;
+    return !serverSocket.isClosed();
   }
 }
