@@ -22,7 +22,9 @@ public record HttpRequestsHandler(Socket socket) {
       var response = "HTTP/1.1 200 OK\r\n"
           + "Content-Length: 16\r\n"
           + "Content-Type: text/html\r\n"
-          + "<b>It works!</b>\r\n\r\n";
+          + "<b>It works!</b>"
+          + "\r\n"
+          + "\r\n";
       out.write(response.getBytes());
       out.flush();
     } catch (IOException e) {
