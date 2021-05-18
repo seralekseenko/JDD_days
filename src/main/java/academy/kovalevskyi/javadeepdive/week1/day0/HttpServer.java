@@ -2,7 +2,6 @@ package academy.kovalevskyi.javadeepdive.week1.day0;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Scanner;
 
 public class HttpServer implements Runnable {
@@ -30,20 +29,25 @@ public class HttpServer implements Runnable {
     while (!"stop".equals(command)) {
       command = in.nextLine();
     }
+    in.close();
     server.stop();
   }
 
   @Override
   public void run() {
     while (isLive()) {
-      HttpRequestsHandler handler = null;
+      HttpRequestsHandler handler;
       try {
-        handler = new HttpRequestsHandler(serverSocket.accept());
+        // TODO в решении учителя вынести клиента в поля класса!
+        try (var client = serverSocket.accept()) {
+          handler = new HttpRequestsHandler(client);
+          handler.executeRequest();
+        }
       } catch (IOException e) {
-        e.printStackTrace();
-      }
-      if (handler != null) {
-        handler.executeRequest();
+        // БРЕД
+        if (isLive()) {
+          e.printStackTrace();
+        }
       }
     }
   }
