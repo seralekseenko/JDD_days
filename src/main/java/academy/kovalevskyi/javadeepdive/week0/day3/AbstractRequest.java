@@ -35,7 +35,7 @@ public abstract class AbstractRequest<T> {
    */
   protected abstract T execute() throws RequestException;
 
-  protected int findColumnIndex(Csv csv, String columnName) {
+  static int findColumnIndex(Csv csv, String columnName) {
     var columnIndex = -1;
     var columns = csv.header();
 

@@ -20,18 +20,13 @@ public class HttpRequestsHandler {
         new StdBufferedReader(new InputStreamReader(socket.getInputStream()));
         OutputStream out = socket.getOutputStream()) {
 
-      var firstReading = true;
       System.out.println("####ПЕЧАТАЕМ ЗАПРОС####");
+      System.out.println(parseFirstLine(bufferedReader.readLine()));
       while (bufferedReader.hasNext()) {
         var read = bufferedReader.readLine();
 
-        if (read.length != 0 && !firstReading) {
+        if (read.length != 0) {
           System.out.println(read);
-        }
-
-        if (firstReading) {
-          System.out.println(parseFirstLine(read));
-          firstReading = false;
         }
       }
 

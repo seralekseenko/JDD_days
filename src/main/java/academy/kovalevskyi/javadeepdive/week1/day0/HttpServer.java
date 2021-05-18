@@ -6,10 +6,10 @@ import java.util.Scanner;
 
 public class HttpServer implements Runnable {
 
-  static final int DEFAULT_PORT = 8080;
-  static Scanner in = new Scanner(System.in);
+  protected static final int DEFAULT_PORT = 8080;
+  protected final Scanner in;
 
-  private volatile ServerSocket serverSocket;
+  protected volatile ServerSocket serverSocket;
 
   public HttpServer() {
     try {
@@ -17,6 +17,7 @@ public class HttpServer implements Runnable {
     } catch (IOException e) {
       e.printStackTrace();
     }
+    in = new Scanner(System.in);
   }
 
   public static void main(String[] args) {
@@ -26,12 +27,12 @@ public class HttpServer implements Runnable {
 
     System.out.println("Input 'stop' to stop the server: ");
 
-    String command = in.nextLine();
+    String command = server.in.nextLine();
 
     while (!"stop".equals(command)) {
-      command = in.nextLine();
+      command = server.in.nextLine();
     }
-    in.close();
+    server.in.close();
 
     server.stop();
   }

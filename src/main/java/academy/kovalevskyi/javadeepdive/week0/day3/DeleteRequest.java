@@ -25,8 +25,11 @@ public class DeleteRequest extends AbstractRequest<Csv> {
     // find all matches TODO maybe 'flatMap'??
     ArrayList<String[]> newValues = new ArrayList<>();
     var searchingValue = whereSelector.value();
+    if (searchingValue == null) {
+      return csv.clone();
+    }
     for (String[] line : csv.values()) {
-      if (searchingValue != null && searchingValue.equals(line[columnIndex])) {
+      if (searchingValue.equals(line[columnIndex])) {
         continue;
       }
       newValues.add(line);
