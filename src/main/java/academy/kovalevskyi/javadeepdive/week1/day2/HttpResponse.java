@@ -20,10 +20,11 @@ public record HttpResponse(ResponseStatus status,
   */
 
   public static class Builder {
+
     private ResponseStatus status = ResponseStatus.OK;
     private ContentType contentType = ContentType.TEXT_HTML;
     private HttpVersion httpVersion = HttpVersion.HTTP_1_1;
-    private String body;
+    private String body = "";
 
 
     public Builder status(ResponseStatus status) {
@@ -37,7 +38,8 @@ public record HttpResponse(ResponseStatus status,
     }
 
     public Builder body(String body) {
-      this.body = body;
+      // TODO выпилить требование этого хардкода переноса строк
+      this.body = (body + "\r\n\r\n");
       return this;
     }
 
@@ -53,13 +55,12 @@ public record HttpResponse(ResponseStatus status,
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder(String.format("%s %s\n\r", httpVersion, status));
-    if (body != null && !body.isEmpty()) {
-      sb.append("Content-Length: ").append(body.length()).append("\n\r");
-      sb.append("Content-Type: ").append(contentType).append("\n\r\n\r");
-      sb.append(body).append("\n\r\n\r");
-    }
-    return sb.toString();
+    return String.format("%s %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s",
+        httpVersion,
+        status,
+        contentType,
+        body.length(),
+        body);
   }
 
   public enum ResponseStatus {

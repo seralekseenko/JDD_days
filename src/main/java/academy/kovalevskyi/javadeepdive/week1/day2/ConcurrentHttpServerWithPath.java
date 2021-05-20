@@ -22,7 +22,10 @@ public class ConcurrentHttpServerWithPath extends Thread {
 
   private ServerSocket serverSocket;
   private boolean isAlive = false;
+  private StdBufferedReader bufferedReader;
+  private OutputStream out;
   private final ExecutorService executor;
+
 
   private final List<HttpRequestsHandler> handlers = new CopyOnWriteArrayList<>();
 
@@ -61,12 +64,8 @@ public class ConcurrentHttpServerWithPath extends Thread {
       try {
         // в сокете найдем потоки ввода/вывода
         socket = serverSocket.accept();
-        System.out.println(socket.isClosed());
         // из socket.getInputStream() распарсим запрос
-        // TODO нужно не закрыть умудриться сокет
         request = parseRequest(socket);
-        socket = serverSocket.accept();
-        System.out.println(socket.isClosed());
       } catch (IOException e) {
         // БРЕД
         if (isLive()) {
@@ -81,29 +80,23 @@ public class ConcurrentHttpServerWithPath extends Thread {
       HttpRequest finalRequest = request;
       Future<HttpResponse> workedHandler = executor.submit(() -> currentHandler.process(
           finalRequest));
+      // записываем ответ в исходящий поток
       try {
-        // записываем ответ в исходящий поток
-        System.out.println(socket.isClosed());
         writeResponse(socket, workedHandler.get());
-      } catch (InterruptedException | ExecutionException e) {
+      } catch (IOException | InterruptedException | ExecutionException e) {
         e.printStackTrace();
       }
     }
   }
 
-  private void writeResponse(Socket socket, HttpResponse httpResponse) {
-    System.out.println(socket.isClosed());
-    try (OutputStream out = socket.getOutputStream()) {
-      out.write(httpResponse.toString().getBytes());
-      socket.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    System.out.println(socket.isClosed());
+  private void writeResponse(Socket socket, HttpResponse httpResponse) throws IOException {
+    out = socket.getOutputStream();
+    out.write(httpResponse.toString().getBytes());
+    //System.out.println(httpResponse);
+    socket.close();
   }
 
   private HttpRequestsHandler selectHandler(HttpRequest request) {
-    HttpRequestsHandler result;
     for (var handler : handlers) {
       if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
         return handler;
@@ -148,39 +141,37 @@ public class ConcurrentHttpServerWithPath extends Thread {
         });*/
   }
 
-  private HttpRequest parseRequest(Socket socket) {
+  private HttpRequest parseRequest(Socket socket) throws IOException {
     HttpRequest.Builder resultBuilder = new Builder();
-    try (StdBufferedReader bufferedReader =
-        new StdBufferedReader(new InputStreamReader(socket.getInputStream()))) {
+    bufferedReader =
+        new StdBufferedReader(new InputStreamReader(socket.getInputStream()));
 
-      var line = new String(bufferedReader.readLine());
-      var splitLine = line.split(" ");
-      resultBuilder
-          .method(HttpMethod.valueOf(splitLine[0]))
-          .path(splitLine[1])
-          .httpVersion(HttpVersion.valueOf(splitLine[2].replaceAll("[/.]", "_")));
-      int nullLineCounter = 0;
+    var line = new String(bufferedReader.readLine());
+    var splitLine = line.split(" ");
+    resultBuilder
+        .method(HttpMethod.valueOf(splitLine[0]))
+        .path(splitLine[1])
+        .httpVersion(HttpVersion.valueOf(splitLine[2].replaceAll("[/.]", "_")));
+    int nullLineCounter = 0;
 
-      while (bufferedReader.hasNext()) {
-        line = new String(bufferedReader.readLine());
-        if (line.length() == 0) {
-          nullLineCounter++;
-          continue;
-        }
-        if (line.contains("Content-Type: ")) {
-          resultBuilder.contentType(ContentType.valueOf(line
-              .substring(14)
-              .replaceAll("/", "_")
-              .toUpperCase()));
-        }
-        if (nullLineCounter > 1) {
-          resultBuilder.body(line);
-        }
-        nullLineCounter = 0;
+    while (bufferedReader.hasNext()) {
+      line = new String(bufferedReader.readLine());
+      if (line.length() == 0) {
+        nullLineCounter++;
+        continue;
       }
-    } catch (IOException e) {
-      e.printStackTrace();
+      if (line.contains("Content-Type: ")) {
+        resultBuilder.contentType(ContentType.valueOf(line
+            .substring(14)
+            .replaceAll("/", "_")
+            .toUpperCase()));
+      }
+      if (nullLineCounter > 1) {
+        resultBuilder.body(line);
+      }
+      nullLineCounter = 0;
     }
+
     return resultBuilder.build();
   }
 
@@ -189,6 +180,12 @@ public class ConcurrentHttpServerWithPath extends Thread {
     try {
       serverSocket.close();
       executor.shutdown();
+      if (bufferedReader != null) {
+        bufferedReader.close();
+      }
+      if (out != null) {
+        out.close();
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
