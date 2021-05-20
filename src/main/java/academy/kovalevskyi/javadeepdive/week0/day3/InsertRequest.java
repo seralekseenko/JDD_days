@@ -1,6 +1,7 @@
 package academy.kovalevskyi.javadeepdive.week0.day3;
 
 import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class InsertRequest extends AbstractRequest<Csv> {
   protected Csv execute() throws RequestException {
     checkRequest();
 
-    List<String[]> values = Arrays.asList(csv.values());
+    List<String[]> values = new ArrayList<>(Arrays.asList(csv.values()));
     values.add(line);
 
     return new Csv.Builder()

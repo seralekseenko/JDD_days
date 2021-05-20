@@ -18,8 +18,8 @@ public class SelectRequest extends AbstractRequest<String[][]> {
     this.specificColumns = specificColumns;
   }
 
-  @Override
-  protected String[][] execute() throws RequestException {
+  @Override // TODO переделать возврат на Csv!
+  public String[][] execute() throws RequestException {
     checkRequest();
     // Нет заданных колонок — просто возвращаем значения по селектору!
     if (specificColumns == null || specificColumns.length == 0) {
@@ -93,7 +93,7 @@ public class SelectRequest extends AbstractRequest<String[][]> {
       return this;
     }
 
-    public SelectRequest build() throws RequestException {
+    public SelectRequest build() {
       return new SelectRequest(target, selector, columns);
     }
   }
