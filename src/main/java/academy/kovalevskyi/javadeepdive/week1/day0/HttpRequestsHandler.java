@@ -22,12 +22,25 @@ public class HttpRequestsHandler {
 
       System.out.println("####ПЕЧАТАЕМ ЗАПРОС####");
       System.out.println(parseFirstLine(bufferedReader.readLine()));
+      int nullLineCounter = 0;
       while (bufferedReader.hasNext()) {
-        var read = bufferedReader.readLine();
+        var read = new String(bufferedReader.readLine());
 
-        if (read.length != 0) {
-          System.out.println(read);
+        if (read.length() == 0) {
+          nullLineCounter++;
+          continue;
         }
+        if (nullLineCounter == 1) {
+          System.out.print(read);
+        }
+        System.out.println(" ##null line counter=" + nullLineCounter);
+        if (nullLineCounter > 1) {
+          System.out.println("CONTENT HERE");
+          System.out.println(read);
+          System.out.println("CONTENT HERE");
+        }
+
+        nullLineCounter = 0;
       }
 
       String response = """
