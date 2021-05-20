@@ -2,7 +2,11 @@ package academy.kovalevskyi.javadeepdive.week1.day2;
 
 import java.util.Optional;
 
-public record HttpRequest(String path, HttpMethod httpMethod, Optional<String> body, ContentType contentType, HttpVersion httpVersion) {
+public record HttpRequest(String path,
+                          HttpMethod httpMethod,
+                          Optional<String> body,
+                          ContentType contentType,
+                          HttpVersion httpVersion) {
 
   /*
   Важно! По умолчанию билдер должен создавать запрос с:

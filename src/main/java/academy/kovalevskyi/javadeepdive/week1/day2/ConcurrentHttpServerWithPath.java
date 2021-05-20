@@ -21,7 +21,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
   private static final int DEFAULT_PORT = 8080;
 
   private ServerSocket serverSocket;
-  private boolean isAlive = true;
+  private boolean isAlive = false;
   private final ExecutorService executor;
 
   private final List<HttpRequestsHandler> handlers = new CopyOnWriteArrayList<>();
@@ -44,30 +44,46 @@ public class ConcurrentHttpServerWithPath extends Thread {
   }
 
   public void addHandler(HttpRequestsHandler handler) {
+    if (isAlive) {
+      throw new UnsupportedOperationException(
+          "When the server is running, you cannot add a handler.");
+    }
     handlers.add(handler);
   }
 
   public void run() {
     System.out.println("Start server");
+    isAlive = true;
     while (isLive()) {
-      // в сокете найдем потоки ввода/вывода
+
       Socket socket = null;
+      HttpRequest request = null;
       try {
+        // в сокете найдем потоки ввода/вывода
         socket = serverSocket.accept();
+        System.out.println(socket.isClosed());
+        // из socket.getInputStream() распарсим запрос
+        // TODO нужно не закрыть умудриться сокет
+        request = parseRequest(socket);
+        socket = serverSocket.accept();
+        System.out.println(socket.isClosed());
       } catch (IOException e) {
         // БРЕД
         if (isLive()) {
           e.printStackTrace();
+        } else {
+          return;
         }
       }
-      // из socket.getInputStream() распарсим запрос
-      var request = parseRequest(socket);
       // Тут подбираем запросу соответствующий хендлер
       HttpRequestsHandler currentHandler = selectHandler(request);
       // Тут пихаем хендлер на исполнение в executor
-      Future<HttpResponse> workedHandler = executor.submit(() -> currentHandler.process(request));
+      HttpRequest finalRequest = request;
+      Future<HttpResponse> workedHandler = executor.submit(() -> currentHandler.process(
+          finalRequest));
       try {
         // записываем ответ в исходящий поток
+        System.out.println(socket.isClosed());
         writeResponse(socket, workedHandler.get());
       } catch (InterruptedException | ExecutionException e) {
         e.printStackTrace();
@@ -76,15 +92,41 @@ public class ConcurrentHttpServerWithPath extends Thread {
   }
 
   private void writeResponse(Socket socket, HttpResponse httpResponse) {
+    System.out.println(socket.isClosed());
     try (OutputStream out = socket.getOutputStream()) {
       out.write(httpResponse.toString().getBytes());
+      socket.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
+    System.out.println(socket.isClosed());
   }
 
   private HttpRequestsHandler selectHandler(HttpRequest request) {
-    return handlers.parallelStream()
+    HttpRequestsHandler result;
+    for (var handler : handlers) {
+      if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
+        return handler;
+      }
+    }
+    return new HttpRequestsHandler() {
+      @Override
+      public String path() {
+        return null;
+      }
+
+      @Override
+      public HttpMethod method() {
+        return null;
+      }
+
+      @Override
+      public HttpResponse process(HttpRequest request) {
+        return HttpResponse.ERROR_404;
+      }
+    };
+
+    /*return handlers.parallelStream()
         .filter(handler ->
             request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
         .findAny()
@@ -103,7 +145,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
           public HttpResponse process(HttpRequest request) {
             return HttpResponse.ERROR_404;
           }
-        });
+        });*/
   }
 
   private HttpRequest parseRequest(Socket socket) {

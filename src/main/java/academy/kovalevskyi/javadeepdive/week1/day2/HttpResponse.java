@@ -1,6 +1,9 @@
 package academy.kovalevskyi.javadeepdive.week1.day2;
 
-public record HttpResponse(ResponseStatus status, ContentType contentType, String body, HttpVersion httpVersion) {
+public record HttpResponse(ResponseStatus status,
+                           ContentType contentType,
+                           String body,
+                           HttpVersion httpVersion) {
 
   public static final HttpResponse ERROR_404 =
       new Builder().status(ResponseStatus.ERROR_404).build();
