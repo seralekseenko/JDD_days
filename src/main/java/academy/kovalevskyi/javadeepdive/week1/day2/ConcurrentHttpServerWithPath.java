@@ -4,6 +4,7 @@ import academy.kovalevskyi.javadeepdive.week0.day0.StdBufferedReader;
 import academy.kovalevskyi.javadeepdive.week1.day2.HttpRequest.Builder;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -62,7 +63,6 @@ public class ConcurrentHttpServerWithPath extends Thread {
       // из socket.getInputStream() распарсим запрос
       var request = parseRequest(socket);
       // Тут подбираем запросу соответствующий хендлер
-      // TODO подобрать хендлер
       HttpRequestsHandler currentHandler = selectHandler(request);
       // Тут пихаем хендлер на исполнение в executor
       Future<HttpResponse> workedHandler = executor.submit(() -> currentHandler.process(request));
@@ -72,15 +72,38 @@ public class ConcurrentHttpServerWithPath extends Thread {
       } catch (InterruptedException | ExecutionException e) {
         e.printStackTrace();
       }
-
     }
   }
 
   private void writeResponse(Socket socket, HttpResponse httpResponse) {
+    try (OutputStream out = socket.getOutputStream()) {
+      out.write(httpResponse.toString().getBytes());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private HttpRequestsHandler selectHandler(HttpRequest request) {
-    return null;
+    return handlers.parallelStream()
+        .filter(handler ->
+            request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
+        .findAny()
+        .orElse(new HttpRequestsHandler() {
+          @Override
+          public String path() {
+            return null;
+          }
+
+          @Override
+          public HttpMethod method() {
+            return null;
+          }
+
+          @Override
+          public HttpResponse process(HttpRequest request) {
+            return HttpResponse.ERROR_404;
+          }
+        });
   }
 
   private HttpRequest parseRequest(Socket socket) {

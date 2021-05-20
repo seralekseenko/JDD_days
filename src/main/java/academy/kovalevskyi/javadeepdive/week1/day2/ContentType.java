@@ -7,4 +7,9 @@ public enum ContentType {
   MULTIPART_MIXED,
   IMAGE_PNG,
   MESSAGE_HTTP;
+
+  @Override
+  public String toString() {
+    return this.name().toLowerCase().replace('_', '/');
+  }
 }

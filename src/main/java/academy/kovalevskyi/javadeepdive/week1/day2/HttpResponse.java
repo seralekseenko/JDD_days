@@ -48,6 +48,17 @@ public record HttpResponse(ResponseStatus status, ContentType contentType, Strin
     }
   }
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder(String.format("%s %s\n\r", httpVersion, status));
+    if (body != null && !body.isEmpty()) {
+      sb.append("Content-Length: ").append(body.length()).append("\n\r");
+      sb.append("Content-Type: ").append(contentType).append("\n\r\n\r");
+      sb.append(body).append("\n\r\n\r");
+    }
+    return sb.toString();
+  }
+
   public enum ResponseStatus {
     OK(200, "OK"), ERROR_404(404, "not found"), ERROR_500(500, "server error");
     final int code;
@@ -60,8 +71,15 @@ public record HttpResponse(ResponseStatus status, ContentType contentType, Strin
 
     @Override
     public String toString() {
+      /*HTTP/1.1 200 OK
+      Date: Mon, 27 Jul 2009 12:28:53 GMT
+      Server: Apache/2.2.14 (Win32)
+          Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT
+      Content-Length: 88
+      Content-Type: text/html
+      Connection: Closed*/
       // TODO переделать в соответствии стандарту HTTP ответа!
-      return code + " " + description;
+      return String.format("%d %s", code, description);
     }
   }
 }
