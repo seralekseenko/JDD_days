@@ -70,9 +70,8 @@ public class ConcurrentHttpServerWithPath extends Thread {
         // БРЕД
         if (isLive()) {
           e.printStackTrace();
-        } else {
-          return;
         }
+        return;
       }
       // Тут подбираем запросу соответствующий хендлер
       HttpRequestsHandler currentHandler = selectHandler(request);
@@ -97,7 +96,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
   }
 
   private HttpRequestsHandler selectHandler(HttpRequest request) {
-    for (var handler : handlers) {
+   /*for (var handler : handlers) {
       if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
         return handler;
       }
@@ -117,9 +116,9 @@ public class ConcurrentHttpServerWithPath extends Thread {
       public HttpResponse process(HttpRequest request) {
         return HttpResponse.ERROR_404;
       }
-    };
+    };*/
 
-    /*return handlers.parallelStream()
+    return handlers.parallelStream()
         .filter(handler ->
             request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
         .findAny()
@@ -138,7 +137,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
           public HttpResponse process(HttpRequest request) {
             return HttpResponse.ERROR_404;
           }
-        });*/
+        });
   }
 
   private HttpRequest parseRequest(Socket socket) throws IOException {
