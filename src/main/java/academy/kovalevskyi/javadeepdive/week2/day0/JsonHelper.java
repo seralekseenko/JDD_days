@@ -21,6 +21,7 @@ public class JsonHelper {
     if (clazz.isArray()) {
       return arrayToJson(target);
     }
+    // просто объект
     if (clazz.getDeclaredFields().length == 0) {
       return "{ }";
     } else {
@@ -52,10 +53,10 @@ public class JsonHelper {
 
   private static <T> String arrayToJson(T array) {
     var arrayLength = Array.getLength(array);
-
     if (arrayLength == 0) {
       return "[ ]";
     }
+
     StringBuilder sb = new StringBuilder("[");
     for (var i = 0; i < arrayLength; i++) {
       var element = Array.get(array, i);
@@ -74,47 +75,117 @@ public class JsonHelper {
 
   private static boolean isPrimitive(Class<?> clazz) {
     return clazz.equals(Integer.class) || clazz.equals(Long.class) || clazz.equals(Byte.class)
-            || clazz.equals(Short.class) || clazz.equals(Double.class) || clazz.equals(Float.class)
-            || clazz.equals(Boolean.class) || clazz.equals(Character.class)
-            || clazz.equals(int.class) || clazz.equals(long.class) || clazz.equals(byte.class)
-            || clazz.equals(short.class) || clazz.equals(double.class) || clazz.equals(float.class)
-            || clazz.equals(boolean.class) || clazz.equals(char.class);
+        || clazz.equals(Short.class) || clazz.equals(Double.class) || clazz.equals(Float.class)
+        || clazz.equals(Boolean.class) || clazz.equals(Character.class)
+        || clazz.equals(int.class) || clazz.equals(long.class) || clazz.equals(byte.class)
+        || clazz.equals(short.class) || clazz.equals(double.class) || clazz.equals(float.class)
+        || clazz.equals(boolean.class) || clazz.equals(char.class);
   }
 
 
-  public static <T> T fromJsonString(String json, Class<T> cls)
+  public static <T> T fromJsonString(String json, Class<T> clazz)
       throws IllegalAccessException, InvocationTargetException, InstantiationException,
       NoSuchFieldException, NoSuchMethodException {
     if (isNullObject(json)) {
       return null;
     }
     // если просто строка
-    if (cls.equals(String.class)) {
-      return cls
+    if (clazz.equals(String.class)) {
+      return clazz
           .getDeclaredConstructor(String.class)
           .newInstance(json.replace("\"", "").trim());
     }
     // если примитив
-    if (isPrimitive(cls)) {
-      return null;
+    if (isPrimitive(clazz)) {
+      return parseAndGetPrimitives(json, clazz);
     }
 
     // если массив
-    if (cls.isArray()) {
-      return null;
+    if (clazz.isArray()) {
+      return parseAndGetArrays(json, clazz);
+    } else { // если это объект
+      // просто объект
+      return parseObject(json, clazz);
+    }
+  }
+
+  private static <T> T parseObject(String json, Class<T> clazz)
+      throws NoSuchMethodException, InvocationTargetException, InstantiationException,
+      IllegalAccessException, NoSuchFieldException {
+    // TODO magic
+    // 1 вскрываем объект в JSON, избавляя его от фигурных скобок
+    var cookingString = json.trim().replaceAll("^\\{|}$", "").trim();
+    // 2 как-то парсим строки друг от друга (например по ",)
+    var parsedLines = cookingString.split("(,\\s+)");
+
+    // 2.5 создаем пустой инстанс, для дальнейшего его наполнения чепухой
+    var resultConstructor = clazz.getDeclaredConstructor();
+    resultConstructor.setAccessible(true);
+    var result = resultConstructor.newInstance();
+
+    for (String line : parsedLines) {
+      // 3 как-то парсим каждую строку на имя и на значение
+      var nameAndValue = line.split("\\s*:\\s*");
+      String fieldName = nameAndValue[0].replaceAll("\"", "");
+
+      // 4 соотносим типы/имена с полем и записываем туда значение
+      Field oneField = result.getClass().getDeclaredField(fieldName);
+      // И тут я сдался!
+      var valueString = nameAndValue[1].trim().replaceAll("\"", "");
+      oneField.setAccessible(true);
+      var extendedValue = fromJsonString(valueString, oneField.getType());
+      oneField.set(result, extendedValue);
     }
 
-    // просто объект
-    // TODO magic
+    return result;
+  }
 
-    var instance = cls.getDeclaredConstructor(String.class).newInstance();
-    return instance;
+  private static <T> T parseAndGetArrays(String json, Class<T> clazz)
+      throws NoSuchFieldException, InvocationTargetException, IllegalAccessException,
+      InstantiationException, NoSuchMethodException {
+    var cookedString = json
+        .replaceAll("^\\[|]$", "")
+        .trim();
+    String[] splitString;
+    if (clazz.getComponentType().isArray()) {
+      splitString = cookedString.split("],*");
+    } else {
+      splitString = cookedString.split(",");
+    }
+    // если массив пуст, то и вернуть надо нулячий массив
+    if (splitString.length == 1 && splitString[0].isEmpty()) {
+      splitString = new String[]{};
+    }
+
+    var array = Array.newInstance(clazz.getComponentType(), splitString.length);
+    for (var i = 0; i < splitString.length; i++) {
+      var takenObject = fromJsonString(splitString[i], clazz.getComponentType());
+      Array.set(array, i, takenObject);
+    }
+    return clazz.cast(array);
+  }
+
+  private static <T> T parseAndGetPrimitives(String json, Class<T> clazz) {
+    var typeName = clazz.getSimpleName();
+    return switch (typeName) {
+      case "Integer", "int" -> (T) Integer.valueOf(json);
+      //case "int" -> (int) Integer.parseInt(json);
+      case "Long", "long" -> (T) Long.valueOf(json);
+      case "Double", "double" -> (T) Double.valueOf(json);
+      case "Float", "float" -> (T) Float.valueOf(json);
+      case "Byte", "byte" -> (T) Byte.valueOf(json);
+      case "Short", "short" -> (T) Short.valueOf(json);
+      case "Boolean", "boolean" -> (T) Boolean.valueOf(json);
+      case "Character", "char" -> clazz.cast(json.charAt(0));
+
+      default -> throw new IllegalStateException("Unexpected primitive name: " + typeName);
+    };
   }
 
   protected static boolean isNullObject(String json) {
-    return json == null // * - ноль и более раз!
-        || json.matches("^\\s*(\\{\\s*null\\s*}|null)*\\s*$");
+    return json == null //|| json.isEmpty() || json.equals("null") || json.equals("\"null\"")
+        //|| json.equals("{}")
+        // * это ноль и более раз! + это один и более раз!
+        || json.matches("^\\s*(\\{\\s*}|\"null\"|null)*\\s*$");
   }
-
-
 }

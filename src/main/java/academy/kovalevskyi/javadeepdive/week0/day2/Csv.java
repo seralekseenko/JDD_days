@@ -4,6 +4,10 @@ import java.util.Arrays;
 
 public record Csv(String[] header, String[][] values) {
 
+  Csv() {
+    this(null, null);
+  }
+
   public static class Builder {
 
     private String[] inputHeader;
