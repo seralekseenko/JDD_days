@@ -96,7 +96,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
   }
 
   private HttpRequestsHandler selectHandler(HttpRequest request) {
-   /*for (var handler : handlers) {
+    /*for (var handler : handlers) {
       if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
         return handler;
       }
