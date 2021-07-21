@@ -5,8 +5,41 @@ import academy.kovalevskyi.javadeepdive.week1.day2.HttpRequest.Builder;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.List;
 
-public class RequestParser {
+public class ServerHelper {
+
+
+  public static HttpRequestsHandler selectHandler(List<HttpRequestsHandler> handlers,
+      HttpRequest request) {
+    /*for (var handler : handlers) {
+      if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
+        return handler;
+      }
+    }
+    return new HttpRequestsHandler() {
+      @Override
+      public String path() {
+        return null;
+      }
+
+      @Override
+      public HttpMethod method() {
+        return null;
+      }
+
+      @Override
+      public HttpResponse process(HttpRequest request) {
+        return HttpResponse.ERROR_404;
+      }
+    };*/
+
+    return handlers.parallelStream()
+        .filter(handler ->
+            request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
+        .findAny()
+        .orElse(new HttpRequestsHandler() {});
+  }
 
   // TODO REFACTOR
   public static HttpRequest parseRequest(Socket socket) throws IOException {
@@ -41,6 +74,12 @@ public class RequestParser {
     }
 
     return resultBuilder.build();
+  }
+
+  public static void writeResponse(Socket socket, HttpResponse httpResponse) throws IOException {
+    socket.getOutputStream().write(httpResponse.toString().getBytes());
+    //System.out.println(httpResponse);
+    socket.close();
   }
 
 }

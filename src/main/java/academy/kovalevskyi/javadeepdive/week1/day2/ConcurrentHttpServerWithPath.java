@@ -1,12 +1,10 @@
 package academy.kovalevskyi.javadeepdive.week1.day2;
 
-import static academy.kovalevskyi.javadeepdive.week1.day2.RequestParser.parseRequest;
+import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.parseRequest;
+import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.selectHandler;
+import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.writeResponse;
 
-import academy.kovalevskyi.javadeepdive.week0.day0.StdBufferedReader;
-import academy.kovalevskyi.javadeepdive.week1.day2.HttpRequest.Builder;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -67,7 +65,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
           HttpRequest request = parseRequest(socket);
           // Тут подбираем запросу соответствующий хендлер
           // и пихаем этот хендлер на исполнение в executor
-          return selectHandler(request).process(request);
+          return selectHandler(handlers, request).process(request);
         });
         // записываем ответ в исходящий поток
         writeResponse(socket, workedHandler.get());
@@ -81,41 +79,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
     }
   }
 
-  private void writeResponse(Socket socket, HttpResponse httpResponse) throws IOException {
-    socket.getOutputStream().write(httpResponse.toString().getBytes());
-    //System.out.println(httpResponse);
-    socket.close();
-  }
 
-  private HttpRequestsHandler selectHandler(HttpRequest request) {
-    /*for (var handler : handlers) {
-      if (handler.path().equals(request.path()) && handler.method().equals(request.httpMethod())) {
-        return handler;
-      }
-    }
-    return new HttpRequestsHandler() {
-      @Override
-      public String path() {
-        return null;
-      }
-
-      @Override
-      public HttpMethod method() {
-        return null;
-      }
-
-      @Override
-      public HttpResponse process(HttpRequest request) {
-        return HttpResponse.ERROR_404;
-      }
-    };*/
-
-    return handlers.parallelStream()
-        .filter(handler ->
-            request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
-        .findAny()
-        .orElse(new HttpRequestsHandler() {});
-  }
 
   public void stopServer() {
     isAlive = false;
