@@ -37,7 +37,7 @@ public class JoinRequest extends AbstractRequest<Csv> {
     // дополнительные проверки
     checkRequest();
 
-    var mergedHeader = mergeLine(leftTable.header(), rightTable.header());
+    String[] mergedHeader = mergeLine(leftTable.header(), rightTable.header());
     var tempLeftVal = leftTable.values();
     var tempRightVal = rightTable.values();
     String[][] mergedValues = new String[tempLeftVal.length][];

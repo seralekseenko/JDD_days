@@ -10,6 +10,7 @@ import java.util.Objects;
 public abstract class AbstractRequest<T> {
 
   /** The table on which the work will be done.
+   * Где private? Почему не final?!
    */
   Csv csv;
   /** Указывает в каком столбце какое совпадение искать, что поможет отсортировать строки.
@@ -39,7 +40,7 @@ public abstract class AbstractRequest<T> {
     var columnIndex = -1;
     var columns = csv.header();
 
-    for (int i = 0; i < columns.length; i++) {
+    for (var i = 0; i < columns.length; i++) {
       if (Objects.equals(columnName, columns[i])) {
         columnIndex = i;
         break;

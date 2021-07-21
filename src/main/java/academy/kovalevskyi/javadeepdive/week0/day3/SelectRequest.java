@@ -4,10 +4,9 @@ import academy.kovalevskyi.javadeepdive.week0.day2.Csv;
 import java.util.Arrays;
 
 /**
- * Выбирает что-то из одной конкретной таблицы.
- * Selector задает колонку и значение для отбора.
- * Если Selector пуст, то выводиться вся таблица.
- * String[] columns задает колонки, которые нужно вернуть.
+ * Выбирает что-то из одной конкретной таблицы. Selector задает колонку и значение для отбора. Если
+ * Selector пуст, то выводиться вся таблица. String[] columns задает колонки, которые нужно
+ * вернуть.
  */
 public class SelectRequest extends AbstractRequest<String[][]> {
 
@@ -33,11 +32,11 @@ public class SelectRequest extends AbstractRequest<String[][]> {
     return getValuesWithSpecifiedColumns(selectLinesWithSelector());
   }
 
-  private String[][] getValuesWithSpecifiedColumns(String[][] selectedLines) {
+  private String[][] getValuesWithSpecifiedColumns(String[][] values) {
     int[] columnIds = Arrays.stream(specificColumns)
         .mapToInt(column -> findColumnIndex(csv, column))
         .toArray();
-    return Arrays.stream(selectedLines)
+    return Arrays.stream(values)
         .map(line -> rebuildLine(line, columnIds))
         .toArray(String[][]::new);
   }
@@ -57,7 +56,8 @@ public class SelectRequest extends AbstractRequest<String[][]> {
     }
   }
 
-  /** Выбирает линии по параметрам селектора.
+  /**
+   * Выбирает линии по параметрам селектора.
    *
    * @return values with selected lines.
    */

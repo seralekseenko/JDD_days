@@ -73,6 +73,7 @@ public record Csv(String[] header, String[][] values) {
     return sb.toString();
   }
 
+  @Override
   public Csv clone() {
     return new Csv(this.header.clone(), this.values.clone());
   }

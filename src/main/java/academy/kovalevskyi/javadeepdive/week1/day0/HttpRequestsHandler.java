@@ -6,13 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class HttpRequestsHandler {
-
-  private final Socket socket;
-
-  public HttpRequestsHandler(Socket socket) {
-    this.socket = socket;
-  }
+public record HttpRequestsHandler(Socket socket) {
 
   public void executeRequest() {
 
@@ -20,7 +14,7 @@ public class HttpRequestsHandler {
         new StdBufferedReader(new InputStreamReader(socket.getInputStream()));
         OutputStream out = socket.getOutputStream()) {
 
-      System.out.println("####ПЕЧАТАЕМ ЗАПРОС####");
+      System.out.println("\n####ПЕЧАТАЕМ ЗАПРОС####");
       System.out.println(parseFirstLine(bufferedReader.readLine()));
       int nullLineCounter = 0;
       while (bufferedReader.hasNext()) {
@@ -33,7 +27,7 @@ public class HttpRequestsHandler {
         if (nullLineCounter == 1) {
           System.out.print(read);
         }
-        System.out.println(" ##null line counter=" + nullLineCounter);
+        //System.out.println(" ##null line counter=" + nullLineCounter);
         if (nullLineCounter > 1) {
           System.out.println("CONTENT HERE");
           System.out.println(read);
@@ -44,13 +38,13 @@ public class HttpRequestsHandler {
       }
 
       String response = """
-          HTTP/1.1 200 OK\r
-          Content-Length: 20\r
-          Content-Type: text/html\r
-          \r
-          <b>It works!</b>\r
-          \r
-          """;
+                        HTTP/1.1 200 OK\r
+                        Content-Length: 20\r
+                        Content-Type: text/html\r
+                        \r
+                        <b>It works!</b>\r
+                        \r
+                        """;
       out.write(response.getBytes());
       socket.close();
     } catch (IOException e) {

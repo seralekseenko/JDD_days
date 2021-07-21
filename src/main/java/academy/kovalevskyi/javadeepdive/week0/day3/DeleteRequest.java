@@ -23,21 +23,21 @@ public class DeleteRequest extends AbstractRequest<Csv> {
     var columnIndex = findColumnIndex(csv, whereSelector.columnName());
 
     // find all matches TODO maybe 'flatMap'??
-    ArrayList<String[]> newValues = new ArrayList<>();
-    var searchingValue = whereSelector.value();
-    if (searchingValue == null) {
-      return csv.clone();
+    var valuesAfterDelete = new ArrayList<>();
+    var valueToDelete = whereSelector.value();
+    if (valueToDelete == null) {
+      return csv.clone(); // перерасход памяти или распиши зачем оно.
     }
-    for (String[] line : csv.values()) {
-      if (searchingValue.equals(line[columnIndex])) {
+    for (var line : csv.values()) {
+      if (valueToDelete.equals(line[columnIndex])) {
         continue;
       }
-      newValues.add(line);
+      valuesAfterDelete.add(line);
     }
 
     return new Csv.Builder()
         .header(csv.header())
-        .values(newValues.toArray(String[][]::new))
+        .values(valuesAfterDelete.toArray(String[][]::new))
         .build();
   }
 

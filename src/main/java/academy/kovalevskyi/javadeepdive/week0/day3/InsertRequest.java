@@ -20,7 +20,7 @@ public class InsertRequest extends AbstractRequest<Csv> {
   protected Csv execute() throws RequestException {
     checkRequest();
 
-    List<String[]> values = new ArrayList<>(Arrays.asList(csv.values()));
+    var values = new ArrayList<String[]>(Arrays.asList(csv.values()));
     values.add(line);
 
     return new Csv.Builder()

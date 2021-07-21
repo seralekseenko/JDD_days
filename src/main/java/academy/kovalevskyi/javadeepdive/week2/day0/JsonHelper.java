@@ -3,7 +3,12 @@ package academy.kovalevskyi.javadeepdive.week2.day0;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class JsonHelper {
 
@@ -93,7 +98,7 @@ public class JsonHelper {
     if (clazz.equals(String.class)) {
       return clazz
           .getDeclaredConstructor(String.class)
-          .newInstance(json.replace("\"", "").trim());
+          .newInstance(json.replace("\"", "").strip());
     }
     // если примитив
     if (isPrimitive(clazz)) {
@@ -112,32 +117,64 @@ public class JsonHelper {
   private static <T> T parseObject(String json, Class<T> clazz)
       throws NoSuchMethodException, InvocationTargetException, InstantiationException,
       IllegalAccessException, NoSuchFieldException {
-    // TODO magic
-    // 1 вскрываем объект в JSON, избавляя его от фигурных скобок
-    var cookingString = json.trim().replaceAll("^\\{|}$", "").trim();
     // 2 как-то парсим строки друг от друга (например по ",)
-    var parsedLines = cookingString.split("(,\\s+)");
-
+    String[] parsedObjectFields = jsonSplit(json);
+    /*for (var i = 1; i <= parsedObjectFields.length; i++) {
+      System.out.printf("LINE IS: \t%s\n", parsedObjectFields[i - 1]);
+    }*/
     // 2.5 создаем пустой инстанс, для дальнейшего его наполнения чепухой
+
     var resultConstructor = clazz.getDeclaredConstructor();
     resultConstructor.setAccessible(true);
     var result = resultConstructor.newInstance();
-
-    for (String line : parsedLines) {
+    int lineNumber = 1;
+    for (String line : parsedObjectFields) {
       // 3 как-то парсим каждую строку на имя и на значение
-      var nameAndValue = line.split("\\s*:\\s*");
+      var nameAndValue = line.split("\\s*:\\s*", 2);
       String fieldName = nameAndValue[0].replaceAll("\"", "");
 
       // 4 соотносим типы/имена с полем и записываем туда значение
       Field oneField = result.getClass().getDeclaredField(fieldName);
       // И тут я сдался!
-      var valueString = nameAndValue[1].trim().replaceAll("\"", "");
+      var valueString = nameAndValue[1].strip().replaceAll("\"", "");
       oneField.setAccessible(true);
       var extendedValue = fromJsonString(valueString, oneField.getType());
+      // TODO ПОЧЕНИТЬ РАБОТУ С ВДЛЖЕННЫМИ МАССИВАМИ ВО ВЛОЖЕННЫХ КЛАССАХ
       oneField.set(result, extendedValue);
     }
-
     return result;
+  }
+
+  private static String[] jsonSplit(String json) {
+    var cookingString = json.strip().replaceAll("^\\{|}$", "").strip();
+    var wrongSplitString = cookingString.split(",\\s+");
+    StringBuilder sb = new StringBuilder();
+    List<String> nameAndValues = new ArrayList<>();
+    var openBraces = 0;
+    for (String s : wrongSplitString) {
+      if (!s.contains("{") && !s.contains("}")) {
+        if (sb.isEmpty()) {
+          nameAndValues.add(s);
+        } else {
+          sb.append(",\n\t").append(s);
+        }
+        continue;
+      }
+      if (s.contains("{")) {
+        sb.append(s);
+        openBraces++;
+        continue;
+      }
+      if (s.contains("}")) {
+        sb.append(",\n\t").append(s);
+        openBraces--;
+      }
+      if (openBraces == 0 && !sb.isEmpty()) {
+        nameAndValues.add(sb.toString());
+        sb = new StringBuilder();
+      }
+    }
+    return nameAndValues.toArray(new String[]{});
   }
 
   private static <T> T parseAndGetArrays(String json, Class<T> clazz)
@@ -145,7 +182,7 @@ public class JsonHelper {
       InstantiationException, NoSuchMethodException {
     var cookedString = json
         .replaceAll("^\\[|]$", "")
-        .trim();
+        .strip();
     String[] splitString;
     if (clazz.getComponentType().isArray()) {
       splitString = cookedString.split("],*");
@@ -162,7 +199,7 @@ public class JsonHelper {
       var takenObject = fromJsonString(splitString[i], clazz.getComponentType());
       Array.set(array, i, takenObject);
     }
-    return clazz.cast(array);
+    return (T) array;
   }
 
   private static <T> T parseAndGetPrimitives(String json, Class<T> clazz) {
@@ -176,7 +213,7 @@ public class JsonHelper {
       case "Byte", "byte" -> (T) Byte.valueOf(json);
       case "Short", "short" -> (T) Short.valueOf(json);
       case "Boolean", "boolean" -> (T) Boolean.valueOf(json);
-      case "Character", "char" -> clazz.cast(json.charAt(0));
+      case "Character", "char" -> (T) Character.valueOf(json.charAt(0));
 
       default -> throw new IllegalStateException("Unexpected primitive name: " + typeName);
     };

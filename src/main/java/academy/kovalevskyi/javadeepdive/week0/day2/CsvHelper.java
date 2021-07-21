@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /** Serialize & deserialize Csv.java.
@@ -26,14 +25,12 @@ public class CsvHelper {
    */
   public static Csv parseFile(Reader reader, boolean withHeader, char delimiter)throws IOException {
     String[] header;
-    ArrayList<String[]> values;
+    String[][] valuesStr = null;
+    ArrayList<String[]> values = new ArrayList<>();
     try (StdBufferedReader bufRead = new StdBufferedReader(reader)) {
       header = withHeader ? parseOneLine(bufRead, delimiter) : null;
-
-      values = new ArrayList<>();
-
       while (bufRead.hasNext()) {
-        var temp = parseOneLine(bufRead, delimiter);
+        String[] temp = parseOneLine(bufRead, delimiter);
         if (!temp[0].isEmpty()) {
           values.add(temp);
         }
@@ -59,7 +56,7 @@ public class CsvHelper {
 
     var result = String.join(String.valueOf(delimiter), List.of(strings));
     writer.write(result);
-    writer.write(System.lineSeparator());
+    writer.write(System.lineSeparator()); // добавляет лишний перенос строки в самом конце файла.
   }
 
   private static String[] parseOneLine(StdBufferedReader bufRead, char delimiter) {

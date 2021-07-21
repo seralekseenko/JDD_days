@@ -39,8 +39,8 @@ public class HttpServer implements Runnable {
 
   @Override
   public void run() {
+    HttpRequestsHandler handler;
     while (isLive()) {
-      HttpRequestsHandler handler;
       try {
         handler = new HttpRequestsHandler(serverSocket.accept());
         handler.executeRequest();
