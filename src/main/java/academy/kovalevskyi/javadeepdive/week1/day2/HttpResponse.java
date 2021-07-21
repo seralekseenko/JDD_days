@@ -38,7 +38,6 @@ public record HttpResponse(ResponseStatus status,
     }
 
     public Builder body(String body) {
-      // TODO выпилить требование этого хардкода переноса строк
       this.body = (body + "\r\n\r\n");
       return this;
     }

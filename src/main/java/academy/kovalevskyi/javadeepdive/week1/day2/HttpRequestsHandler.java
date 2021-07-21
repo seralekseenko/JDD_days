@@ -7,9 +7,15 @@ package academy.kovalevskyi.javadeepdive.week1.day2;
 
 public interface HttpRequestsHandler {
 
-  String path();
+  default String path() {
+    return null;
+  }
 
-  HttpMethod method();
+  default HttpMethod method() {
+    return null;
+  }
 
-  HttpResponse process(HttpRequest request);
+  default HttpResponse process(HttpRequest request) {
+    return HttpResponse.ERROR_404;
+  }
 }

@@ -24,8 +24,6 @@ public class ConcurrentHttpServerWithPath extends Thread {
 
   private ServerSocket serverSocket;
   private boolean isAlive = false;
-  private StdBufferedReader bufferedReader;
-  private OutputStream out;
   private final ExecutorService executor;
 
 
@@ -61,38 +59,30 @@ public class ConcurrentHttpServerWithPath extends Thread {
     isAlive = true;
     while (isLive()) {
 
-      Socket socket = null;
-      HttpRequest request = null;
       try {
         // в сокете найдем потоки ввода/вывода
-        socket = serverSocket.accept();
-        // из socket.getInputStream() распарсим запрос
-        request = parseRequest(socket);
-      } catch (IOException e) {
+        Socket socket = serverSocket.accept();
+        Future<HttpResponse> workedHandler = executor.submit(() -> {
+          // из socket.getInputStream() распарсим запрос
+          HttpRequest request = parseRequest(socket);
+          // Тут подбираем запросу соответствующий хендлер
+          // и пихаем этот хендлер на исполнение в executor
+          return selectHandler(request).process(request);
+        });
+        // записываем ответ в исходящий поток
+        writeResponse(socket, workedHandler.get());
+      } catch (IOException | InterruptedException | ExecutionException e) {
         // БРЕД
         if (isLive()) {
           e.printStackTrace();
         }
         return;
       }
-      // Тут подбираем запросу соответствующий хендлер
-      HttpRequestsHandler currentHandler = selectHandler(request);
-      // Тут пихаем хендлер на исполнение в executor
-      HttpRequest finalRequest = request;
-      Future<HttpResponse> workedHandler = executor.submit(() -> currentHandler.process(
-          finalRequest));
-      // записываем ответ в исходящий поток
-      try {
-        writeResponse(socket, workedHandler.get());
-      } catch (IOException | InterruptedException | ExecutionException e) {
-        e.printStackTrace();
-      }
     }
   }
 
   private void writeResponse(Socket socket, HttpResponse httpResponse) throws IOException {
-    out = socket.getOutputStream();
-    out.write(httpResponse.toString().getBytes());
+    socket.getOutputStream().write(httpResponse.toString().getBytes());
     //System.out.println(httpResponse);
     socket.close();
   }
@@ -124,22 +114,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
         .filter(handler ->
             request.httpMethod().equals(handler.method()) && request.path().equals(handler.path()))
         .findAny()
-        .orElse(new HttpRequestsHandler() {
-          @Override
-          public String path() {
-            return null;
-          }
-
-          @Override
-          public HttpMethod method() {
-            return null;
-          }
-
-          @Override
-          public HttpResponse process(HttpRequest request) {
-            return HttpResponse.ERROR_404;
-          }
-        });
+        .orElse(new HttpRequestsHandler() {});
   }
 
   public void stopServer() {
@@ -147,12 +122,6 @@ public class ConcurrentHttpServerWithPath extends Thread {
     try {
       serverSocket.close();
       executor.shutdown();
-      if (bufferedReader != null) {
-        bufferedReader.close();
-      }
-      if (out != null) {
-        out.close();
-      }
     } catch (IOException e) {
       e.printStackTrace();
     }
