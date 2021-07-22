@@ -2,7 +2,6 @@ package academy.kovalevskyi.javadeepdive.week1.day2;
 
 import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.parseRequest;
 import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.selectHandler;
-import static academy.kovalevskyi.javadeepdive.week1.day2.ServerHelper.writeResponse;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,13 +18,10 @@ import java.util.concurrent.Future;
 public class ConcurrentHttpServerWithPath extends Thread {
 
   private static final int DEFAULT_PORT = 8080;
-
+  private final ExecutorService executor;
+  private final List<HttpRequestsHandler> handlers = new CopyOnWriteArrayList<>();
   private ServerSocket serverSocket;
   private boolean isAlive = false;
-  private final ExecutorService executor;
-
-
-  private final List<HttpRequestsHandler> handlers = new CopyOnWriteArrayList<>();
 
   public ConcurrentHttpServerWithPath() {
     this(null);
@@ -56,11 +52,9 @@ public class ConcurrentHttpServerWithPath extends Thread {
     System.out.println("Start server");
     isAlive = true;
     while (isLive()) {
-
-      try {
-        // в сокете найдем потоки ввода/вывода
-        Socket socket = serverSocket.accept();
-        Future<HttpResponse> workedHandler = executor.submit(() -> {
+      // в сокете найдем потоки ввода/вывода
+      try (Socket socket = serverSocket.accept()) {
+        Future<HttpResponse> futureResponse = executor.submit(() -> {
           // из socket.getInputStream() распарсим запрос
           HttpRequest request = parseRequest(socket);
           // Тут подбираем запросу соответствующий хендлер
@@ -68,7 +62,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
           return selectHandler(handlers, request).process(request);
         });
         // записываем ответ в исходящий поток
-        writeResponse(socket, workedHandler.get());
+        socket.getOutputStream().write(futureResponse.get().toString().getBytes());
       } catch (IOException | InterruptedException | ExecutionException e) {
         // БРЕД
         if (isLive()) {
@@ -78,7 +72,6 @@ public class ConcurrentHttpServerWithPath extends Thread {
       }
     }
   }
-
 
 
   public void stopServer() {
