@@ -14,15 +14,15 @@ public class CsvColGetHandler implements HttpRequestsHandler {
   private String[][] selectedLines;
 
 
-  public CsvColGetHandler(Csv csv, String colName, String path) {
-    var selector = new SelectRequest.Builder()
-        .select(new String[]{colName})
+  public CsvColGetHandler(Csv csv, String columnName, String path) {
+    var selectRequest = new SelectRequest.Builder()
+        .select(new String[]{columnName})
         .from(csv)
         .build();
     this.path = path;
 
     try {
-      selectedLines = selector.execute();
+      selectedLines = selectRequest.execute();
     } catch (RequestException e) {
       e.printStackTrace();
     }
@@ -40,14 +40,11 @@ public class CsvColGetHandler implements HttpRequestsHandler {
 
   @Override
   public HttpResponse process(HttpRequest request) {
-    HttpResponse.Builder responseBuilder = new HttpResponse.Builder();
-    responseBuilder
+    return new HttpResponse.Builder()
         .contentType(request.contentType())
-        .httpVersion(request.httpVersion());
-
-    var body = makeBody();
-    responseBuilder.body(body);
-    return responseBuilder.build();
+        .httpVersion(request.httpVersion())
+        .body(makeBody())
+        .build();
   }
 
   private String makeBody() {

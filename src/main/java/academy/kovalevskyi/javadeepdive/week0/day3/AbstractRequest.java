@@ -36,6 +36,13 @@ public abstract class AbstractRequest<T> {
    */
   protected abstract T execute() throws RequestException;
 
+  /** Search an index of column.
+   * If index was not found — return -1.
+   *
+   * @param csv — the object to search in.
+   * @param columnName — desired column.
+   * @return index of column if it is present or -1.
+   */
   static int findColumnIndex(Csv csv, String columnName) {
     var columnIndex = -1;
     var columns = csv.header();
