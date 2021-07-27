@@ -38,12 +38,12 @@ public record HttpResponse(ResponseStatus status,
     }
 
     public Builder body(String body) {
-      this.body = (body + "\r\n\r\n");
+      this.body = (body) + "\r\n\r\n";
       return this;
     }
 
     public Builder httpVersion(HttpVersion version) {
-      this.httpVersion = httpVersion;
+      this.httpVersion = version;
       return this;
     }
 

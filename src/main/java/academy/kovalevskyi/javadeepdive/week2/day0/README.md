@@ -1,19 +1,19 @@
 ## JSON
 
 ### OBJECT:
-![object](object.png)
+![object](images/object.png)
 
 ### VALUE
-![VALUE](value.png)
+![VALUE](images/value.png)
 
 ### ARRAY
-![ARRAY](array.png)
+![ARRAY](images/array.png)
 
 ### STRING
-![STRING](string.png)
+![STRING](images/string.png)
 
 # NUMBER
-![NUMBER](number.png)
+![NUMBER](images/number.png)
 
 ### NULL
 Просто слово `null` вместо value.

@@ -18,10 +18,10 @@ import java.util.concurrent.Future;
 public class ConcurrentHttpServerWithPath extends Thread {
 
   private static final int DEFAULT_PORT = 8080;
-  private final ExecutorService executor;
+  private final ExecutorService EXECUTOR;
   private final List<HttpRequestsHandler> handlers = new CopyOnWriteArrayList<>();
   private ServerSocket serverSocket;
-  private boolean isAlive = false;
+  private volatile boolean isAlive = false;
 
   public ConcurrentHttpServerWithPath() {
     this(null);
@@ -32,7 +32,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
   }
 
   public ConcurrentHttpServerWithPath(ServerSocket serverSocket, ExecutorService executor) {
-    this.executor = executor;
+    this.EXECUTOR = executor;
     try {
       this.serverSocket = serverSocket != null ? serverSocket : new ServerSocket(DEFAULT_PORT);
     } catch (IOException e) {
@@ -52,21 +52,17 @@ public class ConcurrentHttpServerWithPath extends Thread {
     System.out.println("Start server");
     isAlive = true;
     while (isLive()) {
-      // в сокете найдем потоки ввода/вывода
+
       try (Socket socket = serverSocket.accept()) {
-        Future<HttpResponse> futureResponse = executor.submit(() -> {
-          // из socket.getInputStream() распарсим запрос
+        Future<HttpResponse> futureResponse = EXECUTOR.submit(() -> {
           HttpRequest request = parseRequest(socket);
-          // Тут подбираем запросу соответствующий хендлер
-          // и пихаем этот хендлер на исполнение в executor
           return selectHandler(handlers, request).process(request);
         });
-        // записываем ответ в исходящий поток
         socket.getOutputStream().write(futureResponse.get().toString().getBytes());
       } catch (IOException | InterruptedException | ExecutionException e) {
         // БРЕД
         if (isLive()) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
         return;
       }
@@ -78,7 +74,7 @@ public class ConcurrentHttpServerWithPath extends Thread {
     isAlive = false;
     try {
       serverSocket.close();
-      executor.shutdown();
+      EXECUTOR.shutdown();
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -4,17 +4,15 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class JsonHelper {
 
   public static <T> String toJsonString(T target) {
     if (target == null) {
       return "null"; // просто требование тестов
+      // а как в JSON отображается NULL Object?
     }
     var clazz = target.getClass();
     if (clazz.equals(String.class)) {
@@ -27,17 +25,17 @@ public class JsonHelper {
       return arrayToJson(target);
     }
     // просто объект
-    if (clazz.getDeclaredFields().length == 0) {
-      return "{ }";
-    } else {
-      return objectToJson(target);
-    }
+    return objectToJson(target);
   }
 
   private static <T> String objectToJson(T target) {
+    var clazz = target.getClass();
+    Field[] fields = clazz.getDeclaredFields();
+    if (fields.length == 0) {
+      return "{ }";
+    }
 
     StringBuilder sb = new StringBuilder("{\n\t");
-    Field[] fields = target.getClass().getDeclaredFields();
     for (var i = 0; i < fields.length; i++) {
       fields[i].setAccessible(true);
       // field name
@@ -53,7 +51,6 @@ public class JsonHelper {
       }
     }
     return sb.append("\n}").toString();
-
   }
 
   private static <T> String arrayToJson(T array) {
@@ -64,12 +61,7 @@ public class JsonHelper {
 
     StringBuilder sb = new StringBuilder("[");
     for (var i = 0; i < arrayLength; i++) {
-      var element = Array.get(array, i);
-      if (element.getClass().isArray()) {
-        sb.append(arrayToJson(element));
-      } else {
-        sb.append(toJsonString(element));
-      }
+      sb.append(toJsonString(Array.get(array, i)));
       if (i != arrayLength - 1) {
         sb.append(",");
       }
@@ -112,6 +104,13 @@ public class JsonHelper {
       // просто объект
       return parseObject(json, clazz);
     }
+  }
+
+  private static boolean isNullObject(String json) {
+    return json == null
+        //|| json.isEmpty() || json.equals("null") || json.equals("\"null\"") || json.equals("{}")
+        // * это ноль и более раз! + это один и более раз!
+        || json.matches("^\\s*(\\{\\s*}|\"null\"|null)*\\s*$");
   }
 
   private static <T> T parseObject(String json, Class<T> clazz)
@@ -217,12 +216,5 @@ public class JsonHelper {
 
       default -> throw new IllegalStateException("Unexpected primitive name: " + typeName);
     };
-  }
-
-  protected static boolean isNullObject(String json) {
-    return json == null //|| json.isEmpty() || json.equals("null") || json.equals("\"null\"")
-        //|| json.equals("{}")
-        // * это ноль и более раз! + это один и более раз!
-        || json.matches("^\\s*(\\{\\s*}|\"null\"|null)*\\s*$");
   }
 }

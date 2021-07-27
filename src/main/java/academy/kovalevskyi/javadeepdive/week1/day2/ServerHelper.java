@@ -59,10 +59,11 @@ public class ServerHelper {
     var line = new String(bufferedReader.readLine());
     var splitLine = line.split(" ");
     requestBuilder
-        .method(HttpMethod.valueOf(splitLine[0]))
+        .method(HttpMethod.parseMethod(splitLine[0]))
         .path(splitLine[1])
         .httpVersion(HttpVersion.valueOf(splitLine[2].replaceAll("[/.]", "_")));
   }
+
 
   private static void parseHeaders(Builder requestBuilder, StdBufferedReader bufferedReader) {
     var nullLineCounter = 0;
