@@ -16,7 +16,7 @@ public class StdBufferedReader implements Closeable {
   private int startIndex;
 
   public StdBufferedReader(Reader reader, int bufferSize) throws IOException {
-    if (bufferSize <= 0) {
+    if (bufferSize < 2) {
       throw new IllegalArgumentException();
     }
     if (reader == null) {
@@ -55,16 +55,31 @@ public class StdBufferedReader implements Closeable {
    * @return a one String line in char array presentation.
    */
   public char[] readLine() {
+    if (readerReadResult == -1) {
+      return null;
+    }
+    /*if (!hasNext()) {
+      return null;
+    }*/
+    /*if (isEndOfFile(startIndex)) {
+      return null;
+    }*/
+
+    int endIndex = findEndOfLine(startIndex);
     if (isEndOfLine(startIndex)) {
       startIndex += 1;
       return new char[0];
     }
 
-    int endIndex = findEndOfLine(startIndex);
+
     char[] oneLine = new char[endIndex - startIndex];
     System.arraycopy(buffer, startIndex, oneLine, 0, endIndex - startIndex);
     startIndex = endIndex + 1;
     return oneLine;
+  }
+
+  private boolean isEndOfFile(int startIndex) {
+    return buffer[startIndex] == '\u0000';
   }
 
   @Override

@@ -52,7 +52,6 @@ public class ConcurrentHttpServerWithPath extends Thread {
     System.out.println("Start server");
     isAlive = true;
     while (isLive()) {
-
       try (Socket socket = serverSocket.accept()) {
         Future<HttpResponse> futureResponse = EXECUTOR.submit(() -> {
           HttpRequest request = parseRequest(socket);

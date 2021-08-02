@@ -7,7 +7,7 @@ public enum HttpVersion {
   HTTP_2("HTTP/2"),
   HTTP_3("HTTP/3");
 
-  private String stringName;
+  private final String stringName;
 
   HttpVersion(String stringName) {
     this.stringName = stringName;
