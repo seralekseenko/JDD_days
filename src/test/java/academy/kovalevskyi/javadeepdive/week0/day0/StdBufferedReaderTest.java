@@ -13,6 +13,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Random;
 import java.util.stream.IntStream;
+import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -73,7 +75,7 @@ public class StdBufferedReaderTest {
   }
 
   @Test
-  public void hasNextWhenEmpty() throws Exception {
+  public void hasNextWhenEmptyReader() throws Exception {
     var bufferedReader = new StdBufferedReader(new StringReader(empty), 256);
     assertWithMessage("Checking if hasNext returns false for empty file")
         .that(bufferedReader.hasNext())
@@ -305,6 +307,7 @@ public class StdBufferedReaderTest {
   }
 
   @Test
+  @Disabled
   public void readLineWithWarAndPeace() throws Exception {
     var stdReader =
         new StdBufferedReader(new StringReader(superLongLine));

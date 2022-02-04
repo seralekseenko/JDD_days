@@ -3,14 +3,14 @@ package academy.kovalevskyi.javadeepdive.week2.day1;
 import academy.kovalevskyi.javadeepdive.week0.day0.StdBufferedReader;
 import academy.kovalevskyi.javadeepdive.week1.day2.HttpMethod;
 import java.io.OutputStream;
-import java.util.Set;
-import org.reflections.Reflections;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.reflections.Reflections;
 
 public class RestServer extends Thread {
 

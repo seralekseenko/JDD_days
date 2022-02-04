@@ -104,6 +104,8 @@ public class JsonHelper {
       // просто объект
       return parseObject(json, clazz);
     }
+
+    // TODO is a record?
   }
 
   private static boolean isNullObject(String json) {

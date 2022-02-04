@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 
 public class ConcurrentHttpServer extends HttpServer {
 
-  static final ExecutorService EXECUTOR = Executors.newWorkStealingPool(2);
+  final ExecutorService executorService = Executors.newWorkStealingPool(2);
 
   public ConcurrentHttpServer() {
     super();
@@ -32,7 +32,7 @@ public class ConcurrentHttpServer extends HttpServer {
   public void run() {
     while (isLive()) {
       try {
-        EXECUTOR.execute(new HttpRequestsHandler(serverSocket.accept())::executeRequest);
+        executorService.execute(new HttpRequestsHandler(serverSocket.accept())::executeRequest);
       } catch (IOException e) {
         // БРЕД
         if (isLive()) {
@@ -45,6 +45,6 @@ public class ConcurrentHttpServer extends HttpServer {
   @Override
   public void stop() {
     super.stop();
-    EXECUTOR.shutdown();
+    executorService.shutdown();
   }
 }

@@ -27,11 +27,7 @@ public class HttpServer implements Runnable {
 
     System.out.println("Input 'stop' to stop the server: ");
 
-    String command = server.in.nextLine();
-
-    while (!"stop".equals(command)) {
-      command = server.in.nextLine();
-    }
+    while (!"stop".equals(server.in.nextLine())) {}
     server.in.close();
 
     server.stop();
